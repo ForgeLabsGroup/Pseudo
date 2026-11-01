@@ -1,6 +1,8 @@
 import { CONTENT_SELECT, getAdminClient, toContentItem } from '@pseudo/database';
+import { traced } from '@pseudo/ai';
 import { getPublisher } from '@pseudo/publishers';
 import { publish } from '../lib/bus';
+import { traceStore } from '../lib/trace';
 
 /**
  * Workflow E: the publishing worker. Polls due jobs every few seconds (covers both
@@ -69,11 +71,15 @@ async function runJob(job: Record<string, any>) {
     if (!row?.approved_at) problems.push('Content is not approved');
     if (problems.length) throw Object.assign(new Error(problems.join('; ')), { permanent: true });
 
-    const res = await publisher.publish({
-      content,
-      account: { id: account?.id ?? null, handle: account?.handle ?? 'demo', mode: job.mode },
-      // Live mode: decrypt token from social_account_tokens here (Phase 10).
-    });
+    const res = await traceStore.run({ userId, runId: null, agent: 'distribution' }, () =>
+      traced('publisher', job.platform, () =>
+        publisher.publish({
+          content,
+          account: { id: account?.id ?? null, handle: account?.handle ?? 'demo', mode: job.mode },
+          // Live mode: decrypt token from social_account_tokens here (Phase 10).
+        }),
+      ),
+    );
     await admin.from('publishing_records').insert({
       user_id: userId,
       job_id: job.id,

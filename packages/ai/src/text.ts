@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import { aiConfig } from './config';
 import { mockGenerate } from './mock/text';
+import { traced } from './trace';
 
 export interface GenerateJsonArgs<T extends z.ZodType> {
   /** Stable task id; also used by the mock provider to pick a fixture. */
@@ -25,7 +26,13 @@ export interface GenerateJsonResult<T> {
  * OpenAI-compat endpoint, Groq, Featherless...). We ask for JSON, give the JSON Schema in the prompt,
  * validate with Zod, and do ONE repair attempt with the validation errors.
  */
-export async function generateJson<T extends z.ZodType>(
+export function generateJson<T extends z.ZodType>(
+  args: GenerateJsonArgs<T>,
+): Promise<GenerateJsonResult<z.infer<T>>> {
+  return traced('llm', args.task, () => runGenerateJson(args));
+}
+
+async function runGenerateJson<T extends z.ZodType>(
   args: GenerateJsonArgs<T>,
 ): Promise<GenerateJsonResult<z.infer<T>>> {
   if (aiConfig().text === 'mock') {
@@ -73,8 +80,7 @@ export async function generateJson<T extends z.ZodType>(
       parsed = undefined;
     }
     const result = args.schema.safeParse(parsed);
-    if (result.success)
-      return { data: result.data, provider, model, tokensIn, tokensOut };
+    if (result.success) return { data: result.data, provider, model, tokensIn, tokensOut };
     messages.push({ role: 'assistant', content: text });
     messages.push({
       role: 'user',

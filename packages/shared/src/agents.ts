@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AgentName, RunStatus } from './enums';
+import { AgentName, CallModule, RunStatus } from './enums';
 
 export const AgentRun = z.object({
   id: z.uuid(),
@@ -56,6 +56,25 @@ export const LiveEvent = z.discriminatedUnion('type', [
     contentId: z.uuid(),
     jobId: z.uuid(),
     status: z.string(),
+  }),
+  /** One provider call (LLM, image, scraper...) made inside a run or the publishing worker. */
+  z.object({
+    type: z.literal('call.started'),
+    callId: z.string(),
+    runId: z.uuid().nullable(),
+    agent: AgentName,
+    module: CallModule,
+    label: z.string(),
+  }),
+  z.object({
+    type: z.literal('call.finished'),
+    callId: z.string(),
+    runId: z.uuid().nullable(),
+    agent: AgentName,
+    module: CallModule,
+    label: z.string(),
+    ok: z.boolean(),
+    ms: z.number(),
   }),
 ]);
 export type LiveEvent = z.infer<typeof LiveEvent>;

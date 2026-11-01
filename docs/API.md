@@ -42,4 +42,4 @@ CORS allows GET, HEAD, POST, PATCH, DELETE (`apps/api/src/server.ts`); a route u
 | GET | /api/analytics | `DashboardResponse` |
 | GET | /api/usage/higgsfield | `HiggsfieldUsageResponse` (paid Higgsfield requests from `provider_usage`) |
 | GET | /api/agents/runs, /api/agents/runs/:id | runs + events |
-| GET | /api/events?access_token= | **SSE** stream of `LiveEvent` |
+| GET | /api/events?access_token= | **SSE** stream of `LiveEvent` (`run.*`, `call.*`, `persona/content/media/publish.updated`...) |

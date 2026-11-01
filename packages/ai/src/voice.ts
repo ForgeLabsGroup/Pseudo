@@ -1,4 +1,5 @@
 import { aiConfig } from './config';
+import { traced } from './trace';
 
 export interface WordTiming {
   text: string;
@@ -16,10 +17,11 @@ export interface GeneratedVoice {
 }
 
 /** Returns null in mock mode: the video plays without audio and uses scene durations. */
-export async function generateVoice(
-  text: string,
-  voiceId?: string,
-): Promise<GeneratedVoice | null> {
+export function generateVoice(text: string, voiceId?: string): Promise<GeneratedVoice | null> {
+  return traced('voice', aiConfig().voice, () => elevenLabsVoice(text, voiceId));
+}
+
+async function elevenLabsVoice(text: string, voiceId?: string): Promise<GeneratedVoice | null> {
   if (aiConfig().voice !== 'elevenlabs') return null;
   const id = voiceId ?? process.env.ELEVENLABS_VOICE_ID ?? 'JBFqnCBsd6RMkjVDRZzb';
   const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${id}/with-timestamps`, {

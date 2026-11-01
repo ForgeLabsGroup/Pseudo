@@ -1,6 +1,7 @@
 import { getAdminClient } from '@pseudo/database';
 import type { AgentName } from '@pseudo/shared';
 import { publish } from './bus';
+import { traceStore } from './trace';
 
 /**
  * Agent execution tracking. Every background workflow is wrapped in a run:
@@ -58,7 +59,7 @@ export function runInBackground(
         .update({ status: 'running', started_at: new Date().toISOString() })
         .eq('id', runId);
       publish(userId, { type: 'run.started', runId, agent, personaId });
-      const res = (await fn(ctx)) ?? {};
+      const res = (await traceStore.run({ userId, runId, agent }, () => fn(ctx))) ?? {};
       await admin
         .from('agent_runs')
         .update({

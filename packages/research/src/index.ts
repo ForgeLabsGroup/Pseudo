@@ -1,3 +1,4 @@
+import { traced } from '@pseudo/ai';
 import type { InfluencerHandles, VideoAnalysis } from '@pseudo/shared';
 import { acquireVideo, videoKey } from './acquire';
 import { buildPlaybook } from './playbook';
@@ -106,8 +107,10 @@ export async function researchArchetype(
     try {
       await progress('fetch', `Fetching latest content for ${inf.label}`);
       const [videos, xPosts] = await Promise.all([
-        source.getRecentVideos(inf.handles, perInfluencer),
-        source.getRecentPosts(inf.handles, opts.postsPerInfluencer ?? 15).catch(async (err) => {
+        traced('social', source.name, () => source.getRecentVideos(inf.handles, perInfluencer)),
+        traced('social', source.name, () =>
+          source.getRecentPosts(inf.handles, opts.postsPerInfluencer ?? 15),
+        ).catch(async (err) => {
           await progress('x_failed', `No X posts for ${inf.label}: ${(err as Error).message}`);
           return [] as SourcePost[];
         }),
@@ -136,11 +139,13 @@ export async function researchArchetype(
               for (const w of acquired.warnings) await progress('download_warning', w);
             }
             await progress('watch', `Watching ${video.platform} video from ${inf.label}`);
-            const analysis = await watcher.watch(video, {
-              archetypeName: archetype.name,
-              media: acquired ?? undefined,
-              onMeta: (m) => Object.assign(meta, m),
-            });
+            const analysis = await traced('watcher', watcher.name, () =>
+              watcher.watch(video, {
+                archetypeName: archetype.name,
+                media: acquired ?? undefined,
+                onMeta: (m) => Object.assign(meta, m),
+              }),
+            );
             analyses.push(analysis);
             await opts.saveAnalysis?.(inf.id, video, analysis, watcher.name, {
               ...meta,

@@ -1,5 +1,6 @@
 import { aiConfig } from './config';
 import { higgsfieldImageToVideo } from './higgsfield';
+import { traced } from './trace';
 
 export interface GeneratedClip {
   data: Buffer;
@@ -11,7 +12,15 @@ export interface GeneratedClip {
  * Turn a scene still into a moving clip. Returns null in mock mode: the template then animates
  * the still image (Ken Burns), so the pipeline still works with no video provider.
  */
-export async function generateVideoClip(input: {
+export function generateVideoClip(input: {
+  imageUrl: string;
+  prompt: string;
+  durationSec: number;
+}): Promise<GeneratedClip | null> {
+  return traced('video', aiConfig().video, () => higgsfieldClip(input));
+}
+
+async function higgsfieldClip(input: {
   imageUrl: string;
   prompt: string;
   durationSec: number;
