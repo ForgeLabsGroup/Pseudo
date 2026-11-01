@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { ContentEditor } from '@/components/content-editor';
 import { ErrorText } from '@/components/error-text';
@@ -34,6 +35,7 @@ function localInputValue(d: Date) {
 export function ContentActions({ item, compact }: { item: ContentItem; compact?: boolean }) {
   const qc = useQueryClient();
   const { recordFor, queuedJobFor } = usePublishing();
+  const onVideoPage = usePathname().startsWith('/video');
   const [editing, setEditing] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [runAt, setRunAt] = useState(() => localInputValue(new Date(Date.now() + 3600_000)));
@@ -56,7 +58,9 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
 
   const record = recordFor(item.id);
   const queued = queuedJobFor(item.id);
-  const needsVideo = item.body?.type === 'short_video' && !item.body.videoAssetId;
+  // The video pipeline attaches one 'scene' image per scene; no scenes = never built.
+  const needsVideo =
+    item.body?.type === 'short_video' && !item.media.some((m) => m.role === 'scene');
   const reviewable = ['awaiting_approval', 'rejected', 'draft'].includes(item.status);
 
   return (
@@ -210,11 +214,14 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
         </div>
       )}
 
-      {needsVideo && !compact && ['approved', 'awaiting_approval'].includes(item.status) && (
-        <Link href="/video" className="block text-xs text-link hover:underline">
-          This script needs a video before it can publish. Build it in Video Studio →
-        </Link>
-      )}
+      {needsVideo &&
+        !compact &&
+        !onVideoPage &&
+        ['approved', 'awaiting_approval'].includes(item.status) && (
+          <Link href="/video" className="block text-xs text-link hover:underline">
+            This script needs a video before it can publish. Build it in Video Studio →
+          </Link>
+        )}
       {item.status === 'failed' && item.body && item.error && (
         <p className="text-xs text-danger">{item.error}</p>
       )}

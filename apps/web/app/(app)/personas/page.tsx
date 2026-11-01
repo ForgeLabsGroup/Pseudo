@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 import { useUI } from '@/lib/store';
-import { cn } from '@/lib/utils';
+import { cn, timeAgo } from '@/lib/utils';
 
 /** Persona Studio: every alter ego the user has. */
 export default function PersonasPage() {
@@ -80,6 +80,10 @@ export default function PersonasPage() {
                 {p.id === activeId && (
                   <Badge className="border-link/40 text-link">Active in studio</Badge>
                 )}
+                <span className="ml-auto shrink-0 font-mono text-xs text-subtle">
+                  {p.currentVersion > 0 && `v${p.currentVersion} · `}
+                  {timeAgo(p.createdAt)}
+                </span>
               </div>
             </Card>
           </Link>

@@ -7,6 +7,7 @@ import {
 } from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, Check, ImagePlus, Loader2, ShieldCheck, Trash2, X } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
 import { RunProgress } from '@/components/run-progress';
@@ -153,6 +154,12 @@ export function LikenessCard({ persona, selfies }: { persona: Persona; selfies: 
           </label>
         </div>
         {selfies === 0 && <p className="text-xs text-warning">Add at least one selfie first.</p>}
+        <p className="text-xs text-muted">
+          Training runs on Higgsfield and uses your Higgsfield credits.{' '}
+          <Link href="/settings" className="text-link hover:underline">
+            See usage
+          </Link>
+        </p>
         <ErrorText error={train.error ?? upload.error} />
       </CardContent>
     </Card>
