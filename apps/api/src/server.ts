@@ -12,6 +12,7 @@ import personaRoutes from './routes/personas';
 import publishingRoutes from './routes/publishing';
 import usageRoutes from './routes/usage';
 import { startPublishingWorker } from './jobs/publisher';
+import { startRunReaper } from './jobs/reaper';
 
 export async function buildServer() {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
@@ -57,5 +58,6 @@ if (process.env.NODE_ENV !== 'test') {
   }
   const app = await buildServer();
   startPublishingWorker();
+  startRunReaper();
   await app.listen({ port: env.port, host: env.host });
 }
