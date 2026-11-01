@@ -27,6 +27,8 @@ ${input.guardrails.map((g) => `- ${g}`).join('\n')}`,
         : 'X POSTS: none were collected. Set "xPostPatterns" to an empty array; do not guess X patterns from the videos.',
     ].join('\n\n'),
   });
+  // Archetype guardrails ride along in dontList so every prompt that uses the playbook gets them.
+  const dontList = [...new Set([...input.guardrails, ...res.data.dontList])];
   // Never present invented X patterns as researched when no posts were collected.
-  return input.posts.length ? res.data : { ...res.data, xPostPatterns: [] };
+  return { ...res.data, dontList, xPostPatterns: input.posts.length ? res.data.xPostPatterns : [] };
 }

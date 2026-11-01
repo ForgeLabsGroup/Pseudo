@@ -49,19 +49,30 @@ export async function generateJson<T extends z.ZodType>(
 
   let tokensIn = 0;
   let tokensOut = 0;
+  // Some OpenAI-compatible hosts (open models) reject response_format; the prompt already asks for JSON.
+  let jsonMode = true;
+  const complete = async () => {
+    const body = { model, messages, temperature: args.temperature ?? 0.8 };
+    if (!jsonMode) return client.chat.completions.create(body);
+    try {
+      return await client.chat.completions.create({
+        ...body,
+        response_format: { type: 'json_object' },
+      });
+    } catch (err) {
+      if ((err as { status?: number }).status !== 400) throw err;
+      jsonMode = false;
+      return client.chat.completions.create(body);
+    }
+  };
   for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await client.chat.completions.create({
-      model,
-      messages,
-      temperature: args.temperature ?? 0.8,
-      response_format: { type: 'json_object' },
-    });
+    const res = await complete();
     tokensIn += res.usage?.prompt_tokens ?? 0;
     tokensOut += res.usage?.completion_tokens ?? 0;
     const text = res.choices[0]?.message?.content ?? '';
     let parsed: unknown;
     try {
-      parsed = JSON.parse(stripFences(text));
+      parsed = JSON.parse(extractJson(text));
     } catch {
       parsed = undefined;
     }
@@ -77,9 +88,10 @@ export async function generateJson<T extends z.ZodType>(
   throw new Error(`AI output failed validation for task "${args.task}"`);
 }
 
-function stripFences(s: string): string {
-  return s
-    .replace(/^\s*```(?:json)?/i, '')
-    .replace(/```\s*$/, '')
-    .trim();
+/** The JSON object in a model reply: drops reasoning (<think>), code fences and any prose around it. */
+export function extractJson(s: string): string {
+  const text = s.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  return start >= 0 && end > start ? text.slice(start, end + 1) : text.trim();
 }
