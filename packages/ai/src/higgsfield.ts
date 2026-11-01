@@ -142,13 +142,14 @@ export async function higgsfieldImage(args: GenerateImageArgs): Promise<Generate
       aspect_ratio,
       resolution: '720p',
       batch_size: 1,
+      enhance_prompt: false, // our prompt is already written for realism; Soul's enhancer adds a stylised look
     };
   } else {
     model = MARKETING_IMAGE_MODEL;
     const refs = (args.referenceUrls ?? []).slice(0, 2);
     // Edit mode treats the prompt as an instruction on the photo, so say explicitly to keep the face.
     const prompt = refs.length
-      ? `Edit this photo of a real person. Keep the exact same person: identical face, skin tone, hair and body. Change only the setting, outfit and lighting to: ${args.prompt}. Photorealistic, natural skin, no extra people.`
+      ? `Edit this photo of a real person. Keep the exact same person: identical face, skin tone, hair and body. Change only the setting, outfit and lighting to: ${args.prompt}. It must look like an unedited phone photo: natural skin texture with pores and fine lines, no airbrushing, no extra people.`
       : args.prompt;
     input = { prompt, aspect_ratio, resolution: '1k', ...(refs.length ? { image_urls: refs } : {}) };
   }

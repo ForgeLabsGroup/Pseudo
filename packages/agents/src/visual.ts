@@ -5,16 +5,30 @@ import { z } from 'zod';
 /** What each category MUST visibly show. Injected into the prompt so the category is honoured even if the LLM drifts. */
 const CATEGORY_HINTS: Record<MediaCategory, string> = {
   reference: 'a plain, well-lit portrait with the face clearly visible',
-  profile: 'a clean headshot-style portrait with the face large and clearly visible',
-  lifestyle: 'a candid, aspirational daily-life moment in a luxury city setting',
-  car: 'the person posing next to or sitting in a luxury sports car (generic, unbranded), with the car large and clearly visible',
-  interior: 'the person inside a high-end modern penthouse interior with designer furniture and city views',
+  profile: 'a natural close portrait with the face large and clearly visible, soft window or outdoor light',
+  lifestyle: 'a candid everyday moment in an upscale city setting, caught mid-action',
+  car: 'the person next to or sitting in a luxury sports car (generic, unbranded) as if photographed by a friend, car large and clearly visible',
+  interior: 'the person relaxing in a modern high-end apartment with real clutter (throw blanket, laptop, glass of water) and city views',
   travel: 'the person at a scenic, recognisable travel destination',
-  yacht: 'the person on the deck of a luxury yacht at sea',
-  fitness: 'the person training in a premium gym or outdoors mid-workout',
-  workspace: 'the person at a sleek desk with multiple monitors in a modern office',
-  other: 'a polished lifestyle photo',
+  yacht: 'the person on the deck of a yacht at sea, wind in their hair and clothes, squinting slightly in the sun',
+  fitness: 'the person mid-workout in a real gym, a bit sweaty, towel or water bottle nearby',
+  workspace: 'the person at a desk with multiple monitors, coffee cup and cables, working',
+  other: 'a natural lifestyle photo',
 };
+
+/**
+ * Why images look like "AI slop": cinematic/golden-hour/bokeh/HDR wording, flawless skin, perfect symmetry,
+ * studio-clean compositions. Real social photos are candid phone shots with ordinary light and small flaws.
+ */
+const SLOP_WORDS =
+  /\b(cinematic|masterpiece|hyper-?realistic|ultra-?realistic|photo-?realistic|ultra[- ]detailed|highly detailed|8k|4k|hdr|bokeh|volumetric|dramatic lighting|studio lighting|epic|stunning|breathtaking|award[- ]winning|trending on \w+|unreal engine|octane|render(ed)?|shallow depth of field|golden[- ]hour glow|warm tones|35mm)\b[,.]?\s*/gi;
+
+/** Appended to every image prompt, after the LLM's text, so it holds regardless of provider. */
+export const REALISM_SUFFIX =
+  'Unedited candid photo taken on a smartphone, natural available light, true-to-life colours. Real skin with visible pores, fine lines and uneven tone, no airbrushing or beauty filter, natural asymmetry. Slightly imperfect framing, mild noise in the shadows, nothing staged or over-sharpened. Not an illustration, not a render.';
+
+export const cleanImagePrompt = (prompt: string) =>
+  `${prompt.replace(SLOP_WORDS, '').replace(/\s{2,}/g, ' ').replace(/[\s,]+$/, '').trim()}. ${REALISM_SUFFIX}`;
 
 const ImagePromptOut = z.object({ prompt: z.string(), altText: z.string() });
 
@@ -30,9 +44,12 @@ export async function buildImagePrompt(
 ) {
   const res = await generateJson({
     task: 'image_prompt',
-    system: `You are the Visual Agent for PSEUDO. Write one photorealistic image-generation prompt (max 80 words) for a social media photo of the persona. Include setting, wardrobe, lighting, camera. Do not describe the face (the user's reference photo defines it). No logos, no readable brand names, no real people.\n${SAFETY_BLOCK}`,
+    system: `You are the Visual Agent for PSEUDO. Write ONE image-generation prompt (max 60 words) for a social media photo of the persona that looks like a real, unedited photo a friend took on a phone, not an AI render or ad.
+Describe plainly: the exact place, what the person is doing mid-action, what they are wearing (ordinary, slightly lived-in clothes), the real light (e.g. overcast sky, harsh midday sun, window light, car interior, shade) and one small mundane detail (phone in hand, creased shirt, a coffee cup, wet hair, a bag on the seat).
+Camera: a normal eye-level or slightly off-centre phone shot, not a posed studio portrait.
+Never use: cinematic, masterpiece, 8k, ultra-detailed, hyperrealistic, stunning, bokeh, HDR, volumetric, dramatic lighting, golden hour glow, shallow depth of field. Do not describe the face (the user's reference photo defines it). No logos, no readable brand names, no real people.\n${SAFETY_BLOCK}`,
     prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nCategory: ${category}\nThe photo MUST clearly show: ${CATEGORY_HINTS[category]}.\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
     schema: ImagePromptOut,
   });
-  return res.data;
+  return { ...res.data, prompt: cleanImagePrompt(res.data.prompt) };
 }

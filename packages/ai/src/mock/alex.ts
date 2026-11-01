@@ -65,7 +65,7 @@ export const ALEX_STERLING: PersonaIdentity = {
       'matte black supercar',
     ],
     wardrobe: 'Linen shirts, fitted black tees, gold watch, aviators',
-    photographyStyle: 'Cinematic 35mm, warm golden-hour light, shallow depth of field',
+    photographyStyle: 'Candid phone photos, natural available light, slightly imperfect framing',
   },
   socialBios: {
     instagram:
