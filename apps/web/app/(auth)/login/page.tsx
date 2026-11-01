@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input, Label } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase';
+import { Logo } from '@/components/logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,8 +41,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="font-mono text-lg font-medium tracking-[0.24em]">PSEUDO</div>
-          <h1 className="mt-6 text-3xl font-normal tracking-[-0.03em]">Your alter ego.</h1>
+          <Logo variant="full" size={132} className="mx-auto" />
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.03em]">Your alter ego.</h1>
         </div>
         <form onSubmit={submit} className="space-y-4 border border-border bg-surface p-6">
           <div>

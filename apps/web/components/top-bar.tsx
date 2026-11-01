@@ -6,6 +6,7 @@ import { PersonaAvatar } from '@/components/persona-avatar';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useUI } from '@/lib/store';
+import { Logo } from '@/components/logo';
 
 /** The one place the accent blue appears: a full-width nudge while anything awaits approval. */
 function ApprovalBanner() {
@@ -59,7 +60,11 @@ export function TopBar() {
     <>
       <ApprovalBanner />
       <header className="flex min-h-[60px] items-center gap-3 border-b border-border px-4 md:px-6">
-        <Link href="/" className="font-mono text-sm font-medium tracking-[0.24em]">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-mono text-sm font-medium tracking-[0.24em]"
+        >
+          <Logo size={28} />
           PSEUDO
         </Link>
         <span className="flex-1" />
