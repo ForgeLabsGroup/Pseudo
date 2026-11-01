@@ -3,6 +3,7 @@ import {
   Audio,
   Img,
   Sequence,
+  Video,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
@@ -10,6 +11,8 @@ import {
 
 export interface ShortVideoScene {
   imageUrl: string | null;
+  /** AI-animated clip of this scene (Higgsfield). Preferred over imageUrl when present. */
+  videoUrl?: string | null;
   onScreenText: string;
   voiceover: string;
   durationSec: number;
@@ -37,16 +40,24 @@ function Scene({ scene }: { scene: ShortVideoScene }) {
   const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
   return (
     <AbsoluteFill style={{ backgroundColor: '#0b0f14' }}>
-      {scene.imageUrl && (
-        <Img
-          src={scene.imageUrl}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            transform: `scale(${scale})`,
-          }}
+      {scene.videoUrl ? (
+        <Video
+          src={scene.videoUrl}
+          muted
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
+      ) : (
+        scene.imageUrl && (
+          <Img
+            src={scene.imageUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: `scale(${scale})`,
+            }}
+          />
+        )
       )}
       <AbsoluteFill
         style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.75))' }}

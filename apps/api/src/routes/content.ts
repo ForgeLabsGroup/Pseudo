@@ -145,17 +145,15 @@ export default async function contentRoutes(app: FastifyInstance) {
       db(await req.db.from('content_media').delete().eq('content_id', id).eq('role', 'primary'));
       if (body.mediaAssetIds.length)
         db(
-          await req.db
-            .from('content_media')
-            .insert(
-              body.mediaAssetIds.map((assetId, position) => ({
-                content_id: id,
-                asset_id: assetId,
-                user_id: req.user.id,
-                role: 'primary',
-                position,
-              })),
-            ),
+          await req.db.from('content_media').insert(
+            body.mediaAssetIds.map((assetId, position) => ({
+              content_id: id,
+              asset_id: assetId,
+              user_id: req.user.id,
+              role: 'primary',
+              position,
+            })),
+          ),
         );
     }
     const fresh = db(

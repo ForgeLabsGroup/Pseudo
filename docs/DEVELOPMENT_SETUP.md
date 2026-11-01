@@ -4,6 +4,7 @@
 2. **Supabase** (one person does this, shares keys):
    - Create project → SQL Editor → paste `supabase/migrations/20261101000000_init.sql` → Run.
      (or `npx supabase link --project-ref <ref> && npx supabase db push`)
+   - Also run `supabase/migrations/20261101010000_character_refs.sql`.
    - Authentication → Sign In / Providers → Email: turn **off** "Confirm email" (demo).
 3. `cp .env.example .env` and fill Supabase keys. `cp apps/web/.env.example apps/web/.env.local` and fill.
 4. `pnpm --filter @pseudo/api seed` → demo login `demo@pseudo.app / pseudo-demo-2026` with Alex Sterling.

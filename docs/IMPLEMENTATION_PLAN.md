@@ -31,7 +31,7 @@ Owns: `apps/api/src/routes`, `apps/api/src/jobs/{persona,content}.ts`, `packages
 Owns: `apps/web/app/(app)/{page.tsx,personas,studio,content}`, `apps/web/app/(auth)`, `apps/web/components/` (except video-preview).
 1. **Persona Studio** `/personas`, `/personas/new`: description → create → **selfie upload step** (`api.personas.uploadReference`, 1–3 photos) → detail page with live generation progress (SSE activity filtered by runId).
    ✅ new persona appears with full identity without refresh.
-2. **Persona detail** `/personas/[id]`: identity sections (bio, personality, style guide, pillars, visual identity, social bios), inline edit → `api.personas.update` (shows new version), versions list, "Generate image" button (`api.media.generateImage`) + gallery of this persona's images, "set as avatar".
+2. **Persona detail** `/personas/[id]`: "Lock my likeness" button after selfies (`api.personas.trainCharacter`) with training status from `persona.characterRefs.higgsfield`; identity sections (bio, personality, style guide, pillars, visual identity, social bios), inline edit → `api.personas.update` (shows new version), versions list, "Generate image" button (`api.media.generateImage`) + gallery of this persona's images, "set as avatar".
 3. **Proof of Life Studio** `/studio`: persona, platform, content type (filtered by `PLATFORM_CONTENT_TYPES`), topic, tone, count → `api.content.generate`; placeholders flip from *generating* to previews live.
 4. **Content Studio** `/content`: grid/list, filters (persona/platform/status), **platform-native previews** (IG card with image + caption, X post/thread, TikTok script scenes), edit caption/script, approve/reject, **Publish now (mock)**, schedule (datetime), status badges, publish result link.
    ✅ approve → publish → status goes publishing → published live; record shows mock URL.
@@ -40,11 +40,12 @@ Owns: `apps/web/app/(app)/{page.tsx,personas,studio,content}`, `apps/web/app/(au
 
 ## Person C — "Body" (media, video, publishing, data)
 Owns: `packages/{media,publishers}`, `packages/ai/src/{image,voice,mock/image}.ts`, `apps/api/src/jobs/{image,video,publisher}.ts`, `apps/web/app/(app)/{media,video,analytics,settings}`, `apps/web/components/video-preview.tsx`.
-1. **Likeness bake-off first (by T+0:45).** Same 4–6 selfies, same 3 scenes (balcony, trading desk, marina) on: Gemini Pro image model (paid), Gemini Flash (free), and if time fal.ai `flux-pulid`. Pick the winner by eye with the whole team; set `GEMINI_IMAGE_MODEL` / add a provider in `packages/ai/src/image.ts`. Selfie tips: 4–6 photos, varied angles, good light, no sunglasses.
+0. **Wire Higgsfield** in `packages/ai/src/higgsfield.ts` (only file with TODOs): `createCharacter`/`getCharacter` (Soul ID from selfie URLs), `higgsfieldImage` (character + scene prompt), `higgsfieldImageToVideo` (still → 5s vertical clip). Docs: docs.higgsfield.ai. Everything else (DB column, train route, video job, player) is already plumbed.
+1. **Likeness bake-off first (by T+0:45).** Same 4–6 selfies, same 3 scenes (balcony, trading desk, marina) on: **Higgsfield Soul ID**, Gemini Pro image model (paid), Gemini Flash (free). Pick the winner by eye with the whole team; set `GEMINI_IMAGE_MODEL` / add a provider in `packages/ai/src/image.ts`. Selfie tips: 4–6 photos, varied angles, good light, no sunglasses.
    ✅ generated photos are recognisably the user in ≥ 4 of 5 attempts; Miami aesthetic consistent.
 2. **Media Library** `/media`: grid, filters (persona/kind/category), favorite, set avatar, open/download, `AiBadge` on generated, "reference" tag on selfies, generate-image dialog.
-3. **Video Studio** `/video`: list `short_video` items → "Build video" (`api.media.generateVideo`, ElevenLabs voice) → `<VideoPreview>` with captions + audio; approve from here.
-   ✅ TikTok script → playable 9:16 preview with voiceover.
+3. **Video Studio** `/video`: list `short_video` items → "Build video" (`api.media.generateVideo`: scene stills → Higgsfield clips → ElevenLabs voice) → `<VideoPreview>` with clips + captions + audio; approve from here.
+   ✅ TikTok script → playable 9:16 preview of the user moving in each scene, with voiceover.
 4. **Settings** `/settings`: profile, connected accounts (mock connect per platform with handle = persona handle), shows AI/publish mode from `api.session()`.
 5. **Analytics** `/analytics`: engagement chart from `api.analytics()` with **SampleDataBadge**, platform breakdown, publish success/fail counts.
 6. Stretch: subtitle word timings from ElevenLabs into the composition; server MP4 render; live X publishing via OAuth2.

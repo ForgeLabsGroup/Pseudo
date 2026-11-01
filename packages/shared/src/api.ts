@@ -108,6 +108,14 @@ export const UpdateMediaRequest = z.object({
   category: MediaCategory.optional(),
 });
 
+/**
+ * POST /api/personas/:id/character -> RunAccepted. Trains the user's likeness at the configured
+ * provider from their reference selfies (Higgsfield Soul ID). Status lands in persona.characterRefs.
+ */
+export const TrainCharacterRequest = z.object({
+  provider: z.enum(['higgsfield']).default('higgsfield'),
+});
+
 // Reference selfie upload: POST /api/personas/:id/reference-photos (multipart, field "file").
 export const UploadReferenceResponse = z.object({ asset: MediaAsset });
 

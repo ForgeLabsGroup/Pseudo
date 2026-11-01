@@ -51,15 +51,13 @@ if (existing) {
     .select('id')
     .single();
   if (error) throw error;
-  await admin
-    .from('persona_versions')
-    .insert({
-      user_id: userId,
-      persona_id: p.id,
-      version: 1,
-      identity: ALEX_STERLING,
-      change_note: 'Seeded demo persona',
-    });
+  await admin.from('persona_versions').insert({
+    user_id: userId,
+    persona_id: p.id,
+    version: 1,
+    identity: ALEX_STERLING,
+    change_note: 'Seeded demo persona',
+  });
 
   // Clearly-labelled SAMPLE analytics (is_sample = true) for the dashboard charts.
   const rows = [];

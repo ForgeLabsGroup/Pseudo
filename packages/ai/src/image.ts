@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import OpenAI, { toFile } from 'openai';
 import { aiConfig } from './config';
+import { higgsfieldImage } from './higgsfield';
 import { mockImage } from './mock/image';
 
 export interface ReferenceImage {
@@ -13,6 +14,8 @@ export interface GenerateImageArgs {
   /** The user's own selfies. Used to keep the persona's face = the user's face. */
   references?: ReferenceImage[];
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9';
+  /** Provider-side trained likeness (e.g. Higgsfield Soul ID). Preferred over raw references when set. */
+  characterId?: string;
 }
 
 export interface GeneratedImage {
@@ -29,6 +32,7 @@ export async function generateImage(args: GenerateImageArgs): Promise<GeneratedI
   const provider = aiConfig().image;
   if (provider === 'gemini') return geminiImage(args);
   if (provider === 'openai') return openaiImage(args);
+  if (provider === 'higgsfield') return higgsfieldImage(args);
   return mockImage(args);
 }
 

@@ -44,6 +44,15 @@ export const PersonaIdentity = z.object({
 });
 export type PersonaIdentity = z.infer<typeof PersonaIdentity>;
 
+/** A trained likeness of the user at an image/video provider (e.g. Higgsfield Soul ID). */
+export const CharacterRef = z.object({
+  id: z.string().nullable(),
+  status: z.enum(['training', 'ready', 'failed']),
+  error: z.string().nullable().default(null),
+  updatedAt: z.string(),
+});
+export type CharacterRef = z.infer<typeof CharacterRef>;
+
 /** A persona row as returned by the API. */
 export const Persona = z.object({
   id: z.uuid(),
@@ -56,6 +65,8 @@ export const Persona = z.object({
   identity: PersonaIdentity.nullable(),
   currentVersion: z.number().int(),
   avatarUrl: z.string().nullable(),
+  /** keyed by provider, e.g. { higgsfield: {...} } */
+  characterRefs: z.record(z.string(), CharacterRef),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

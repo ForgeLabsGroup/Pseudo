@@ -12,6 +12,7 @@ Schemas: `packages/shared/src/api.ts` (the contract). Background endpoints retur
 | GET | /api/personas/:id | `{ persona, versions }` |
 | PATCH | /api/personas/:id | `UpdatePersonaRequest` (creates new version) → `{ persona }` |
 | POST | /api/personas/:id/generate | `{ instructions? }` → `{ runId }` |
+| POST | /api/personas/:id/character | `{ provider: 'higgsfield' }` → `{ runId }` (train likeness from selfies) |
 | POST | /api/personas/:id/reference-photos | multipart `file` (selfie) → `{ asset }` |
 | GET | /api/content | `ListContentQuery` → `{ items }` |
 | POST | /api/content | manual `{ personaId, platform, body }` → `{ item }` |

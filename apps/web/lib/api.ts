@@ -96,6 +96,8 @@ export const api = {
       request<Out<typeof UpdatePersonaResponse>>('PATCH', `/api/personas/${id}`, b),
     generate: (id: string, b: In<typeof GeneratePersonaRequest> = {}) =>
       request<RunAccepted>('POST', `/api/personas/${id}/generate`, b),
+    trainCharacter: (id: string) =>
+      request<RunAccepted>('POST', `/api/personas/${id}/character`, { provider: 'higgsfield' }),
     uploadReference: (id: string, file: File) => {
       const fd = new FormData();
       fd.append('file', file);

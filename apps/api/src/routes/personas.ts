@@ -10,6 +10,7 @@ import {
   GeneratePersonaRequest,
   Id,
   PersonaIdentity,
+  TrainCharacterRequest,
   UpdatePersonaRequest,
   type RunAccepted,
 } from '@pseudo/shared';
@@ -17,6 +18,7 @@ import type { FastifyInstance } from 'fastify';
 import { db, HttpError, must, parse } from '../lib/http';
 import { createRun, runInBackground } from '../lib/runs';
 import { uploadMedia } from '../lib/storage';
+import { characterJob } from '../jobs/character';
 import { personaJob, saveIdentityVersion } from '../jobs/persona';
 
 export default async function personaRoutes(app: FastifyInstance) {
@@ -105,6 +107,17 @@ export default async function personaRoutes(app: FastifyInstance) {
         existing: row.identity ?? undefined,
       }),
     );
+    reply.code(202);
+    return { runId };
+  });
+
+  /** Train the user's likeness (Higgsfield Soul ID) from the uploaded selfies. */
+  app.post('/api/personas/:id/character', async (req, reply): Promise<RunAccepted> => {
+    const { id } = parse(Id, req.params);
+    const { provider } = parse(TrainCharacterRequest, req.body ?? {});
+    must(db(await req.db.from('personas').select('id').eq('id', id).maybeSingle()), 'Persona');
+    const runId = await createRun(req.user.id, 'visual', id, { provider, step: 'train_character' });
+    runInBackground(req.user.id, runId, 'visual', id, (ctx) => characterJob(ctx, id, provider));
     reply.code(202);
     return { runId };
   });

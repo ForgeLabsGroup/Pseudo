@@ -27,6 +27,7 @@ export const toPersona = (r: Row, avatarUrl: string | null = null): Persona => (
   identity: r.identity,
   currentVersion: r.current_version,
   avatarUrl: avatarUrl ?? r.avatar?.url ?? null,
+  characterRefs: r.character_refs ?? {},
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });

@@ -1,4 +1,4 @@
-import { generateVoice } from '@pseudo/ai';
+import { generateVideoClip, generateVoice } from '@pseudo/ai';
 import { getAdminClient } from '@pseudo/database';
 import { ShortVideoBody, type PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
@@ -52,11 +52,11 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     .from('content_media')
     .delete()
     .eq('content_id', input.contentId)
-    .in('role', ['scene', 'voiceover']);
+    .in('role', ['scene', 'scene_clip', 'voiceover']);
 
   for (const [i, scene] of body.scenes.entries()) {
     await ctx.progress('scene', `Scene ${i + 1}/${body.scenes.length}: ${scene.visual}`);
-    await generatePersonaImage(ctx, {
+    const still = await generatePersonaImage(ctx, {
       personaId: input.personaId,
       identity: input.identity,
       category: 'lifestyle',
@@ -67,6 +67,47 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
       role: 'scene',
       position: i,
     });
+    // Real motion: animate the still (Higgsfield). Mock mode returns null -> template animates the still.
+    const clip = await generateVideoClip({
+      imageUrl: still.url,
+      prompt: scene.visual,
+      durationSec: scene.durationSec,
+    });
+    if (clip) {
+      await ctx.progress('animate', `Animated scene ${i + 1}`);
+      const { path, url } = await uploadMedia(
+        ctx.userId,
+        input.personaId,
+        clip.data,
+        clip.mimeType,
+      );
+      const { data: asset, error: e1 } = await admin
+        .from('media_assets')
+        .insert({
+          user_id: ctx.userId,
+          persona_id: input.personaId,
+          kind: 'video',
+          source: 'ai_generated',
+          category: 'lifestyle',
+          storage_path: path,
+          url,
+          mime_type: clip.mimeType,
+          duration_sec: scene.durationSec,
+          prompt: scene.visual,
+          provider: clip.provider,
+          agent_run_id: ctx.runId,
+        })
+        .select('id')
+        .single();
+      if (e1) throw new Error(e1.message);
+      await admin.from('content_media').insert({
+        content_id: input.contentId,
+        asset_id: asset.id,
+        user_id: ctx.userId,
+        role: 'scene_clip',
+        position: i,
+      });
+    }
   }
 
   let voiceoverAssetId: string | null = null;

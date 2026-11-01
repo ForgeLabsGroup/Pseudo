@@ -7,6 +7,7 @@ import { Player } from '@remotion/player';
 export function VideoPreview({ item, handle }: { item: ContentItem; handle: string }) {
   if (item.body?.type !== 'short_video') return null;
   const sceneMedia = item.media.filter((m) => m.role === 'scene');
+  const clips = item.media.filter((m) => m.role === 'scene_clip');
   const voice = item.media.find((m) => m.role === 'voiceover');
   const props = {
     personaHandle: handle,
@@ -14,6 +15,7 @@ export function VideoPreview({ item, handle }: { item: ContentItem; handle: stri
     voiceoverUrl: voice?.url ?? null,
     scenes: item.body.scenes.map((s, i) => ({
       imageUrl: sceneMedia[i]?.url ?? null,
+      videoUrl: clips[i]?.url ?? null,
       onScreenText: s.onScreenText,
       voiceover: s.voiceover,
       durationSec: s.durationSec,

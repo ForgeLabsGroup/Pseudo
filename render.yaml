@@ -34,6 +34,14 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      - key: AI_VIDEO_PROVIDER
+        value: mock
+      - key: HIGGSFIELD_API_KEY
+        sync: false
+      - key: HIGGSFIELD_API_SECRET
+        sync: false
+      - key: HIGGSFIELD_BASE_URL
+        sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
       - key: ELEVENLABS_VOICE_ID
