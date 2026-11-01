@@ -10,8 +10,8 @@
 import { config, higgsfield, type V2Response } from '@higgsfield/client/v2';
 import type { GenerateImageArgs, GeneratedImage } from './image';
 
-/** Kling 3.0 (std tier) image-to-video. Billed per second, so keep clips short. */
-export const KLING_I2V_MODEL = 'kling-video/v3.0/std/image-to-video';
+/** Kling 3.0 Turbo image-to-video (speed tier, 720p). Billed per second, so keep clips short. */
+export const KLING_I2V_MODEL = 'kling-video/v3.0-turbo/image-to-video';
 export const KLING_T2V_MODEL = 'kling-video/v3.0/std/text-to-video';
 /** Marketing Studio Image: cheap (~$0.011/img). With image_urls it edits the selfie (e.g. new background). */
 export const MARKETING_IMAGE_MODEL = 'marketing-studio/image';
@@ -160,18 +160,19 @@ export async function higgsfieldImage(args: GenerateImageArgs): Promise<Generate
   return { data: Buffer.from(await res.arrayBuffer()), mimeType, provider: 'higgsfield', model };
 }
 
-/** Animate a still (public URL) into a short clip with Kling 3.0. Returns a downloadable video URL. */
+/** Animate a still (public URL) into a short clip with Kling 3.0 Turbo. Returns a downloadable video URL. */
 export async function higgsfieldImageToVideo(input: {
   imageUrl: string;
   prompt: string;
   durationSec: number;
 }): Promise<{ url: string; mimeType: string }> {
   const duration = higgsfieldClipSeconds(input.durationSec);
+  // Turbo has no sound field; we add our own voice/music.
   const { url } = await subscribeVideo(KLING_I2V_MODEL, {
     image_url: input.imageUrl,
     prompt: input.prompt,
     duration,
-    sound: 'off', // we add our own voice/music; avoids paying for generated audio
+    resolution: '720p',
   });
   return { url, mimeType: 'video/mp4' };
 }

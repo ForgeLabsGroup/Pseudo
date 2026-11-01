@@ -130,8 +130,9 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     }
   };
 
-  // Scenes are independent: run a few at a time (Higgsfield jobs are slow, not CPU-bound).
-  const SCENE_CONCURRENCY = Number(process.env.VIDEO_SCENE_CONCURRENCY ?? 3);
+  // Scenes are independent: start them all at once (Higgsfield jobs are slow, not CPU-bound, and
+  // requests above the account's concurrency limit wait in Higgsfield's own queue).
+  const SCENE_CONCURRENCY = Number(process.env.VIDEO_SCENE_CONCURRENCY ?? body.scenes.length);
   const queue = body.scenes.map((scene, i) => ({ scene, i }));
   const failures: unknown[] = [];
   await Promise.all(

@@ -149,7 +149,27 @@ export default async function personaRoutes(app: FastifyInstance) {
   app.post('/api/personas/:id/character', async (req, reply): Promise<RunAccepted> => {
     const { id } = parse(Id, req.params);
     const { provider } = parse(TrainCharacterRequest, req.body ?? {});
-    must(db(await req.db.from('personas').select('id').eq('id', id).maybeSingle()), 'Persona');
+    const row = must(
+      db(await req.db.from('personas').select('character_refs').eq('id', id).maybeSingle()),
+      'Persona',
+    );
+    // Each training is billed, so claim "training" before responding: a second click (or a
+    // concurrent request) matches no row here and gets a 409 instead of paying again.
+    const status = `character_refs->${provider}->>status`;
+    const claimed = db(
+      await req.db
+        .from('personas')
+        .update({
+          character_refs: {
+            ...row.character_refs,
+            [provider]: { id: null, status: 'training', error: null, updatedAt: new Date().toISOString() },
+          },
+        })
+        .eq('id', id)
+        .or(`${status}.is.null,${status}.neq.training`)
+        .select('id'),
+    );
+    if (!claimed.length) throw new HttpError(409, 'Your likeness is already training');
     const runId = await createRun(req.user.id, 'visual', id, { provider, step: 'train_character' });
     runInBackground(req.user.id, runId, 'visual', id, (ctx) => characterJob(ctx, id, provider));
     reply.code(202);

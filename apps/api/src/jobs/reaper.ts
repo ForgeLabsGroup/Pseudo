@@ -1,6 +1,8 @@
 import { getAdminClient } from '@pseudo/database';
 import type { AgentName } from '@pseudo/shared';
 import { publish } from '../lib/bus';
+import { runInBackground } from '../lib/runs';
+import { characterJob, TRAIN_HEARTBEAT_MS } from './character';
 
 /**
  * Jobs run in-process (ADR-003), so an API restart kills them mid-flight and they never reach
@@ -10,8 +12,13 @@ import { publish } from '../lib/bus';
  * Staleness is inactivity, not "started before this process": several API instances (local dev,
  * Render) share one database, and a restart here must not fail jobs another instance is running.
  * 15 min is longer than any single silent wait in a job (Higgsfield polling gives up at 10 min).
+ *
+ * Likeness training is billed once Higgsfield accepts it and keeps running there, so a killed
+ * training run is resumed (same run, same Soul ID) rather than failed. It heartbeats every minute,
+ * so it counts as dead much sooner.
  */
 export const STALE_AFTER_MS = 15 * 60_000;
+const TRAINING_STALE_AFTER_MS = 3 * TRAIN_HEARTBEAT_MS;
 const INTERRUPTED = 'Interrupted: the server stopped before this job finished. Try again.';
 
 export function startRunReaper(intervalMs = 5 * 60_000) {
@@ -30,6 +37,7 @@ export async function reapStaleRuns(now = Date.now()) {
   if (error) throw new Error(error.message);
 
   const reaped: string[] = [];
+  const resumed: string[] = [];
   for (const run of open ?? []) {
     const { data: last } = await admin
       .from('agent_events')
@@ -43,7 +51,12 @@ export async function reapStaleRuns(now = Date.now()) {
         .filter(Boolean)
         .map((t) => Date.parse(t as string)),
     );
-    if (now - lastActivity < STALE_AFTER_MS) continue;
+    const training = run.input?.step === 'train_character';
+    if (now - lastActivity < (training ? TRAINING_STALE_AFTER_MS : STALE_AFTER_MS)) continue;
+    if (training && (await resumeTraining(run, now))) {
+      resumed.push(run.id);
+      continue;
+    }
 
     // Guarded on status so a run that finished meanwhile is left alone.
     const { data: claimed } = await admin
@@ -63,6 +76,7 @@ export async function reapStaleRuns(now = Date.now()) {
     reaped.push(run.id);
   }
   if (reaped.length) console.warn(`[reaper] marked ${reaped.length} interrupted run(s) failed`);
+  if (resumed.length) console.warn(`[reaper] resumed ${resumed.length} likeness training run(s)`);
   return reaped;
 }
 
@@ -72,7 +86,37 @@ type Run = {
   persona_id: string | null;
   agent: string;
   input: Record<string, unknown> | null;
+  started_at: string | null;
 };
+
+/** Picks a killed training run back up if Higgsfield already accepted it (the ref has its id). */
+async function resumeTraining(run: Run, now: number) {
+  const provider = run.input?.provider;
+  if (!run.persona_id || provider !== 'higgsfield' || !run.started_at) return false;
+  const admin = getAdminClient();
+  const { data: persona } = await admin
+    .from('personas')
+    .select('character_refs')
+    .eq('id', run.persona_id)
+    .maybeSingle();
+  const ref = persona?.character_refs?.[provider];
+  if (ref?.status !== 'training' || !ref.id) return false;
+
+  // Guarded on started_at so only one API instance resumes it.
+  const { data: claimed } = await admin
+    .from('agent_runs')
+    .update({ started_at: new Date(now).toISOString() })
+    .eq('id', run.id)
+    .eq('started_at', run.started_at)
+    .in('status', ['queued', 'running'])
+    .select('id');
+  if (!claimed?.length) return false;
+  const personaId = run.persona_id;
+  runInBackground(run.user_id, run.id, 'visual', personaId, (ctx) =>
+    characterJob(ctx, personaId, provider, ref.id),
+  );
+  return true;
+}
 
 async function cleanUp(run: Run) {
   const admin = getAdminClient();

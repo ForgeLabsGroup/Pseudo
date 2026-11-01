@@ -10,6 +10,7 @@ import { Camera, Check, ImagePlus, Loader2, ShieldCheck, Trash2, X } from 'lucid
 import Link from 'next/link';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
+import { Lightbox } from '@/components/lightbox';
 import { RunProgress } from '@/components/run-progress';
 import { AiBadge, Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,8 @@ export function LikenessCard({ persona, selfies }: { persona: Persona; selfies: 
   const train = useMutation({
     mutationFn: () => api.personas.trainCharacter(persona.id),
     onSuccess: ({ runId }) => setRunId(runId),
+    // Stay pending until the persona shows "training", or the button re-enables in between.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['personas'] }),
   });
   const upload = useMutation({
     mutationFn: async (files: File[]) => {
@@ -234,6 +237,7 @@ export function PhotoGallery({ persona }: { persona: Persona }) {
   const qc = useQueryClient();
   const { data, isLoading, error } = usePersonaImages(persona.id);
   const [filter, setFilter] = useState<GalleryFilter>('all');
+  const [viewing, setViewing] = useState<number | null>(null);
   const avatar = useMutation({
     mutationFn: (assetId: string) => api.media.setAvatar(assetId),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['personas'] }),
@@ -276,16 +280,35 @@ export function PhotoGallery({ persona }: { persona: Persona }) {
           </p>
         )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {assets.map((a) => (
+          {assets.map((a, i) => (
             <Photo
               key={a.id}
               asset={a}
+              onOpen={() => setViewing(i)}
               isAvatar={persona.avatarUrl === a.url}
               onSetAvatar={() => avatar.mutate(a.id)}
               busy={avatar.isPending && avatar.variables === a.id}
             />
           ))}
         </div>
+        <Lightbox
+          images={assets.map((a) => ({
+            url: a.url,
+            alt: a.prompt ?? undefined,
+            aiGenerated: a.aiGenerated,
+            caption: (
+              <>
+                {a.prompt && <p className="mx-auto mb-1 max-w-2xl text-white/90">{a.prompt}</p>}
+                <p className="font-mono text-xs text-white/50">
+                  {a.category} · {timeAgo(a.createdAt)}
+                </p>
+              </>
+            ),
+          }))}
+          index={viewing}
+          onIndexChange={setViewing}
+          onClose={() => setViewing(null)}
+        />
       </CardContent>
     </Card>
   );
@@ -293,19 +316,23 @@ export function PhotoGallery({ persona }: { persona: Persona }) {
 
 function Photo({
   asset,
+  onOpen,
   isAvatar,
   onSetAvatar,
   busy,
 }: {
   asset: MediaAsset;
+  onOpen: () => void;
   isAvatar: boolean;
   onSetAvatar: () => void;
   busy: boolean;
 }) {
   return (
     <div className="group relative aspect-square overflow-hidden border border-border bg-surface-2">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={asset.url} alt={asset.prompt ?? ''} className="h-full w-full object-cover" />
+      <button onClick={onOpen} aria-label="View photo" className="h-full w-full cursor-zoom-in">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={asset.url} alt={asset.prompt ?? ''} className="h-full w-full object-cover" />
+      </button>
       <div className="absolute left-2 top-2 flex gap-1">
         {asset.aiGenerated ? (
           <AiBadge />
