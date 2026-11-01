@@ -21,6 +21,17 @@ export async function latestPlaybook(archetypeId: string) {
     : null;
 }
 
+/** Latest cached playbook for a persona's archetype, or null. Never runs research (too slow per image). */
+export async function personaPlaybook(userId: string, personaId: string) {
+  const { data } = await getAdminClient()
+    .from('personas')
+    .select('archetype_id')
+    .eq('id', personaId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  return data?.archetype_id ? ((await latestPlaybook(data.archetype_id))?.playbook ?? null) : null;
+}
+
 /**
  * Research step of the Content agent. Returns a fresh-enough playbook, running research only when
  * the cached one is missing or older than PLAYBOOK_MAX_AGE_HOURS (or force=true).

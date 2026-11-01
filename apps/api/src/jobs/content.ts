@@ -62,6 +62,7 @@ export async function contentJob(ctx: RunCtx, input: ContentJobInput) {
             category: 'lifestyle',
             scene: body.imagePrompt,
             useReference: true,
+            playbook,
             contentId,
           });
           publish(ctx.userId, { type: 'content.updated', contentId, status: 'awaiting_approval' });

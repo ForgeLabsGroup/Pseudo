@@ -6,6 +6,7 @@ import type { RunCtx } from '../lib/runs';
 import { uploadMedia } from '../lib/storage';
 import { trackHiggsfield } from '../lib/usage';
 import { generatePersonaImage } from './image';
+import { personaPlaybook } from './research';
 
 /**
  * Workflow D (MVP): script already exists on the content item. We generate one image per scene and
@@ -55,6 +56,8 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     .eq('content_id', input.contentId)
     .in('role', ['scene', 'scene_clip', 'voiceover']);
 
+  const playbook = await personaPlaybook(ctx.userId, input.personaId);
+
   const doScene = async (i: number, scene: (typeof body.scenes)[number]) => {
     await ctx.progress(
       'scene',
@@ -67,6 +70,7 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
       scene: scene.visual,
       useReference: true,
       aspectRatio: '9:16',
+      playbook,
       contentId: input.contentId,
       role: 'scene',
       position: i,

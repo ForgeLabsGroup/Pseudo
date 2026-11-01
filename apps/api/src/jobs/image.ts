@@ -1,12 +1,13 @@
 import { buildImagePrompt } from '@pseudo/agents';
 import { aiConfig, generateImage, maxReferenceImages, type ReferenceImage } from '@pseudo/ai';
 import { getAdminClient, toMediaAsset } from '@pseudo/database';
-import type { MediaCategory, PersonaIdentity } from '@pseudo/shared';
+import type { ArchetypePlaybook, MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { downloadMedia, uploadMedia } from '../lib/storage';
 import { trackHiggsfield } from '../lib/usage';
 import { readyCharacterId } from './character';
+import { personaPlaybook } from './research';
 
 export interface ImageJobInput {
   personaId: string;
@@ -15,6 +16,8 @@ export interface ImageJobInput {
   scene?: string;
   useReference: boolean;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9';
+  /** Research playbook for the persona's archetype. Omitted = latest cached one. */
+  playbook?: ArchetypePlaybook | null;
   /** Attach the result to this content item. */
   contentId?: string;
   role?: 'primary' | 'scene';
@@ -25,7 +28,8 @@ export interface ImageJobInput {
 export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
   const admin = getAdminClient();
   await ctx.progress('prompt', `Visual Agent composing a ${input.category} shot`);
-  const { prompt } = await buildImagePrompt(input.identity, input.category, input.scene);
+  const playbook = input.playbook ?? (await personaPlaybook(ctx.userId, input.personaId));
+  const { prompt } = await buildImagePrompt(input.identity, input.category, input.scene, playbook);
 
   let references: ReferenceImage[] = [];
   let referenceUrls: string[] = [];
