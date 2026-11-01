@@ -1,4 +1,4 @@
-import type { ContentStatus, Platform } from '@pseudo/shared';
+import type { ContentStatus, PersonaStatus, Platform } from '@pseudo/shared';
 import { PLATFORM_LABELS } from '@pseudo/shared';
 import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,18 @@ const STATUS_STYLE: Record<ContentStatus, string> = {
 
 export function StatusBadge({ status }: { status: ContentStatus }) {
   return <Badge className={STATUS_STYLE[status]}>{status.replace('_', ' ')}</Badge>;
+}
+
+const PERSONA_STATUS_STYLE: Record<PersonaStatus, string> = {
+  generating: 'text-accent border-accent/40 animate-pulse',
+  draft: 'text-warning border-warning/40',
+  active: 'text-success border-success/40',
+  archived: 'text-muted',
+  failed: 'text-danger border-danger/40',
+};
+
+export function PersonaStatusBadge({ status }: { status: PersonaStatus }) {
+  return <Badge className={PERSONA_STATUS_STYLE[status]}>{status}</Badge>;
 }
 
 export function PlatformBadge({ platform }: { platform: Platform }) {

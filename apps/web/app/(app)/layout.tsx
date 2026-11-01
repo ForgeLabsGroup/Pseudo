@@ -6,7 +6,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <AuthGate>
       <div className="bg-glow flex min-h-screen">
         <Sidebar />
-        <main className="min-w-0 flex-1 px-6 py-8 md:px-10">{children}</main>
+        <main className="min-w-0 flex-1 px-4 pb-24 pt-8 md:px-10 md:pb-8">{children}</main>
       </div>
     </AuthGate>
   );

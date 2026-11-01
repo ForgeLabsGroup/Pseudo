@@ -154,6 +154,7 @@ export const api = {
       request<Out<typeof PublishResponse>>('POST', `/api/publishing/${contentId}/publish`, b),
     schedule: (contentId: string, b: In<typeof ScheduleRequest>) =>
       request<Out<typeof PublishResponse>>('POST', `/api/publishing/${contentId}/schedule`, b),
+    cancel: (jobId: string) => request('POST', `/api/publishing/jobs/${jobId}/cancel`),
   },
 
   archetypes: {
