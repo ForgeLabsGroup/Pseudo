@@ -8,24 +8,22 @@ export interface GeneratedClip {
   provider: string;
 }
 
-/**
- * Turn a scene still into a moving clip. Returns null in mock mode: the template then animates
- * the still image (Ken Burns), so the pipeline still works with no video provider.
- */
-export function generateVideoClip(input: {
-  imageUrl: string;
-  prompt: string;
-  durationSec: number;
-}): Promise<GeneratedClip | null> {
-  return traced('video', aiConfig().video, () => higgsfieldClip(input));
-}
-
-async function higgsfieldClip(input: {
+export interface VideoClipInput {
   imageUrl: string;
   prompt: string;
   durationSec: number;
   subject?: 'persona' | 'broll';
-}): Promise<GeneratedClip | null> {
+}
+
+/**
+ * Turn a scene still into a moving clip. Returns null in mock mode: the template then animates
+ * the still image (Ken Burns), so the pipeline still works with no video provider.
+ */
+export function generateVideoClip(input: VideoClipInput): Promise<GeneratedClip | null> {
+  return traced('video', aiConfig().video, () => higgsfieldClip(input));
+}
+
+async function higgsfieldClip(input: VideoClipInput): Promise<GeneratedClip | null> {
   if (aiConfig().video !== 'higgsfield') return null;
   const { url, mimeType } = await higgsfieldImageToVideo(input);
   const res = await fetch(url);
