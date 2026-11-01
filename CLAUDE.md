@@ -7,7 +7,8 @@ Tagline: **"Your alter ego."** Hackathon build: demo is the priority. Docs are i
 ## Golden rules
 1. **TypeScript everywhere.** No Python. pnpm + Turborepo monorepo.
 2. **Contracts live in `packages/shared`** (Zod schemas, enums, API request/response). Never redefine an API shape in apps. Changes to shared must be **additive** — tell the team in chat before changing/removing anything.
-3. **Persona context goes into every AI call** via `personaContext()` in `packages/ai/src/prompts.ts`. Safety rules (`SAFETY_RULES`) go into every prompt.
+3. **Research playbooks** (per archetype, from real top creators) feed Persona/Ideation/Content/Visual via `playbookContext()`. Patterns only: never influencer names, handles, faces or copied lines.
+4. **Persona context goes into every AI call** via `personaContext()` in `packages/ai/src/prompts.ts`. Safety rules (`SAFETY_RULES`) go into every prompt.
 4. **Validate all AI output with Zod before writing to the DB** (`generateJson` does this).
 5. **Nothing publishes without explicit approval.** `content_items.approved_at` must be set by `POST /api/content/:id/approve`; a DB trigger blocks publishing jobs otherwise. Editing approved content resets it to `awaiting_approval`.
 6. **Mock mode is first-class.** Every provider (text/image/voice/publishing) has a mock. The whole demo must work with zero API keys. Don't break mock mode.
@@ -23,6 +24,8 @@ packages/shared     Zod schemas, enums, API contracts, safety rules
 packages/database   Supabase clients (admin / per-user RLS) + row->API mappers
 packages/ai         Providers: text (OpenAI SDK, any compatible endpoint), image (Gemini/OpenAI), voice (ElevenLabs), mocks, prompts
 packages/agents     LangGraph.js workflows: Persona, Strategy+Content, Visual prompt
+packages/research   Research: SocialSource (Apify|mock) -> VideoWatcher (Gemini|mock) -> archetype playbook
+config/archetypes.json  Archetypes + reference influencer handles (seed:archetypes)
 packages/media      Remotion composition (ShortVideo) used by the web <Player>
 packages/publishers Publisher interface, platform validation, mock + live adapters
 supabase/migrations SQL schema + RLS
@@ -44,9 +47,9 @@ pnpm typecheck
 pnpm --filter @pseudo/api seed   # demo user + Alex Sterling + sample analytics
 ```
 
-## Team ownership (avoid stepping on each other — see docs/IMPLEMENTATION_PLAN.md)
-- **A — Brain:** `apps/api/src/routes`, `apps/api/src/jobs/{persona,content}.ts`, `packages/agents`, `packages/ai/src/{text,prompts}.ts`, `supabase/`, Render deploy.
-- **B — Face:** `apps/web` core pages: Command Center, Persona Studio, Proof of Life, Content Studio, `components/`. Vercel deploy.
-- **C — Body:** images/video/voice/publishing: `packages/{media,publishers}`, `packages/ai/src/{image,voice}.ts`, `apps/api/src/jobs/{image,video,publisher}.ts`, web pages Media, Video, Analytics, Settings.
+## Team ownership — see docs/ROLES.md (simple task list per person)
+- **A — Brain:** Supabase, `packages/research`, `packages/agents`, `packages/ai/src/{text,prompts}.ts`, `apps/api/src/routes`, `apps/api/src/jobs/{persona,content,research}.ts`, `config/archetypes.json`.
+- **B — Face:** `apps/web` pages: Command Center, Persona Studio, Proof of Life, Content Studio, Settings, auth, `components/`.
+- **C — Body:** Higgsfield/images/video/voice/publishing: `packages/{media,publishers}`, `packages/ai/src/{image,voice,video,higgsfield}.ts`, `apps/api/src/jobs/{image,video,character,publisher}.ts`, web Media/Video/Analytics, Render + Vercel deploys.
 
 Everyone commits to `dev`: `git pull --rebase origin dev` before every push, small commits, stay inside your folders.

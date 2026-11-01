@@ -1,6 +1,6 @@
 import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
-import { generateJson, SAFETY_BLOCK } from '@pseudo/ai';
-import { PersonaIdentity } from '@pseudo/shared';
+import { generateJson, playbookContext, SAFETY_BLOCK } from '@pseudo/ai';
+import { PersonaIdentity, type ArchetypePlaybook } from '@pseudo/shared';
 import { noProgress, type ProgressFn } from './types';
 
 /**
@@ -11,6 +11,7 @@ const State = Annotation.Root({
   description: Annotation<string>,
   instructions: Annotation<string | undefined>,
   existing: Annotation<PersonaIdentity | undefined>,
+  playbook: Annotation<ArchetypePlaybook | undefined>,
   identity: Annotation<PersonaIdentity | undefined>,
   meta: Annotation<{ provider: string; model: string } | undefined>,
 });
@@ -30,6 +31,7 @@ export function buildPersonaGraph(progress: ProgressFn = noProgress) {
           ? `Existing identity (keep what is not asked to change):\n${JSON.stringify(s.existing)}`
           : '',
         s.instructions ? `Extra direction from the user: ${s.instructions}` : '',
+        playbookContext(s.playbook),
       ]
         .filter(Boolean)
         .join('\n\n');
@@ -58,7 +60,12 @@ export function buildPersonaGraph(progress: ProgressFn = noProgress) {
 }
 
 export async function runPersonaAgent(
-  input: { description: string; instructions?: string; existing?: PersonaIdentity },
+  input: {
+    description: string;
+    instructions?: string;
+    existing?: PersonaIdentity;
+    playbook?: ArchetypePlaybook;
+  },
   progress: ProgressFn = noProgress,
 ) {
   const out = await buildPersonaGraph(progress).invoke(input);

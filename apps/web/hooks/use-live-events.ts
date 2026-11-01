@@ -31,6 +31,7 @@ export function useLiveEvents(enabled: boolean) {
         if (e.type.startsWith('run.')) qc.invalidateQueries({ queryKey: ['runs'] });
         if (e.type === 'persona.updated' || e.type === 'run.succeeded')
           qc.invalidateQueries({ queryKey: ['personas'] });
+        if (e.type === 'archetype.updated') qc.invalidateQueries({ queryKey: ['archetypes'] });
         if (
           e.type === 'content.updated' ||
           e.type === 'publish.updated' ||

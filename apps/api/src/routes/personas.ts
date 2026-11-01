@@ -42,6 +42,7 @@ export default async function personaRoutes(app: FastifyInstance) {
           user_id: req.user.id,
           name: body.name ?? 'Untitled persona',
           description: body.description,
+          archetype_id: body.archetypeId ?? null,
           status: body.generate ? 'generating' : 'draft',
         })
         .select(PERSONA_SELECT)
@@ -51,7 +52,10 @@ export default async function personaRoutes(app: FastifyInstance) {
     if (body.generate) {
       runId = await createRun(req.user.id, 'persona', row.id, body);
       runInBackground(req.user.id, runId, 'persona', row.id, (ctx) =>
-        personaJob(ctx, row.id, { description: body.description }),
+        personaJob(ctx, row.id, {
+          description: body.description,
+          archetypeId: body.archetypeId ?? null,
+        }),
       );
     }
     reply.code(201);
@@ -105,6 +109,7 @@ export default async function personaRoutes(app: FastifyInstance) {
         description: row.description,
         instructions: body.instructions,
         existing: row.identity ?? undefined,
+        archetypeId: row.archetype_id,
       }),
     );
     reply.code(202);

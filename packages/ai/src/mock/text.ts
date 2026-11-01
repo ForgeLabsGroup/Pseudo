@@ -59,6 +59,83 @@ export async function mockGenerate(task: string, prompt: string): Promise<unknow
           'Photorealistic, cinematic 35mm photo of a confident man in his late 20s in a linen shirt on a Brickell balcony at golden hour, Miami skyline, warm tones, shallow depth of field',
         altText: 'Alex on a Miami balcony at golden hour',
       };
+    case 'research': {
+      const name = /ARCHETYPE: ([^—\n]+)/.exec(prompt)?.[1]?.trim() ?? 'Creator';
+      return {
+        summary: `Top ${name} creators win with aspirational visuals, a contrarian first line and a disciplined daily-routine narrative. (mock research)`,
+        hookFormulas: [
+          {
+            name: 'Contrarian truth',
+            template: 'Everyone wants [result]. Nobody wants [unsexy habit].',
+            example: 'Everyone wants the view. Nobody wants the 5am alarm.',
+          },
+          {
+            name: 'POV routine',
+            template: 'POV: [time] as a [archetype] in [city]',
+            example: 'POV: 6am as a trader in Miami',
+          },
+          {
+            name: 'Number list',
+            template: '[N] things I stopped doing that changed [area]',
+            example: '3 things I stopped doing that fixed my focus',
+          },
+        ],
+        videoStructures: [
+          {
+            name: 'Day in the life',
+            beats: [
+              'Hook over b-roll',
+              'Morning ritual',
+              'Work block',
+              'Lifestyle reward',
+              'One-line lesson',
+            ],
+          },
+          {
+            name: 'Talking head + proof b-roll',
+            beats: [
+              'Bold claim to camera',
+              '3 quick points with b-roll',
+              'Punchline',
+              'Follow CTA',
+            ],
+          },
+        ],
+        recurringTopics: [
+          'discipline',
+          'routines',
+          'mindset',
+          'lifestyle rewards',
+          'mistakes to avoid',
+        ],
+        contentPillars: [
+          { name: 'Routine', description: 'Mornings, workspace, rituals' },
+          { name: 'Mindset', description: 'Discipline, patience, contrarian takes' },
+          { name: 'Lifestyle', description: 'The aspirational payoff' },
+        ],
+        toneAndVoice: {
+          description: 'Confident, minimal, slightly provocative',
+          vocabulary: ['discipline', 'edge', 'compound', 'locked in'],
+          avoid: ['guarantees', 'income claims', 'hype emojis'],
+        },
+        xPostPatterns: [
+          'One-line contrarian take',
+          'Short numbered list thread',
+          'Observation + punchline',
+        ],
+        visualStyle: {
+          settings: ['high-rise apartment', 'car interior', 'waterfront'],
+          wardrobe: 'Minimal fitted neutrals, one statement accessory',
+          lighting: 'Golden hour, warm practicals',
+          camera: 'Handheld POV + tripod talking head, 9:16',
+          editing: 'Fast jump cuts, zoom punches, bold centered captions',
+          palette: ['#0B0F14', '#E8C27A', '#F4F1EA'],
+        },
+        postingCadence: '1-2 short videos per day, 3-5 X posts per day',
+        doList: ['Hook in the first second', 'One idea per video', 'Show process, not results'],
+        dontList: ['Income or returns claims', 'Copying other creators lines', 'Long intros'],
+      };
+    }
     case 'analytics':
       return {
         summary: 'Lifestyle posts on Instagram are your strongest pillar (sample data).',

@@ -10,6 +10,7 @@ import { ContentStatus, ContentType, MediaCategory, Platform, PublishMode } from
 import { MediaAsset } from './media';
 import { Persona, PersonaIdentity, PersonaVersion } from './persona';
 import { PublishingJob, PublishingRecord, SocialAccount } from './publishing';
+import { Archetype, ArchetypePlaybook } from './research';
 
 export const Id = z.object({ id: z.uuid() });
 
@@ -25,6 +26,8 @@ export const CreatePersonaRequest = z.object({
   description: z.string().min(10).max(2000),
   /** Optional overrides the user typed manually. */
   name: z.string().optional(),
+  /** Archetype whose research playbook steers this persona (trader, ecommerce, fitness_coach...). */
+  archetypeId: z.uuid().optional(),
   /** If true (default), the Persona Agent runs immediately. */
   generate: z.boolean().default(true),
 });
@@ -142,6 +145,15 @@ export const ScheduleRequest = z.object({
   socialAccountId: z.uuid().optional(),
 });
 export const PublishResponse = z.object({ job: PublishingJob });
+
+// ---------- Archetypes / research ----------
+export const ListArchetypesResponse = z.object({ archetypes: z.array(Archetype) });
+export const GetArchetypeResponse = z.object({
+  archetype: Archetype,
+  playbook: ArchetypePlaybook.nullable(),
+});
+/** POST /api/archetypes/:id/research -> RunAccepted. force=true ignores the 24h cache. */
+export const RefreshResearchRequest = z.object({ force: z.boolean().default(true) });
 
 // ---------- Analytics / dashboard ----------
 export const DashboardResponse = z.object({

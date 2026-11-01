@@ -1,5 +1,5 @@
 import { generateJson, personaContext, SAFETY_BLOCK } from '@pseudo/ai';
-import type { MediaCategory, PersonaIdentity } from '@pseudo/shared';
+import type { ArchetypePlaybook, MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { z } from 'zod';
 
 const ImagePromptOut = z.object({ prompt: z.string(), altText: z.string() });
@@ -12,11 +12,12 @@ export async function buildImagePrompt(
   identity: PersonaIdentity,
   category: MediaCategory,
   scene?: string,
+  playbook?: ArchetypePlaybook | null,
 ) {
   const res = await generateJson({
     task: 'image_prompt',
     system: `You are the Visual Agent for PSEUDO. Write one photorealistic image-generation prompt (max 80 words) for a social media photo of the persona. Include setting, wardrobe, lighting, camera. Do not describe the face (the user's reference photo defines it). No logos, no readable brand names, no real people.\n${SAFETY_BLOCK}`,
-    prompt: `${personaContext(identity)}\n\nCategory: ${category}\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
+    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nCategory: ${category}\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
     schema: ImagePromptOut,
   });
   return res.data;

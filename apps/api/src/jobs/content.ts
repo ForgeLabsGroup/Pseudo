@@ -4,6 +4,7 @@ import type { ContentType, PersonaIdentity, Platform } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { generatePersonaImage } from './image';
+import { ensurePlaybook } from './research';
 
 export interface ContentJobInput {
   personaId: string;
@@ -15,6 +16,8 @@ export interface ContentJobInput {
   tone?: string;
   instructions?: string;
   withImage: boolean;
+  /** Persona's archetype: triggers the Research step (cached playbook, refreshed if stale). */
+  archetypeId?: string | null;
   /** Placeholder content_items (status=generating) created by the route, one per piece. */
   contentIds: string[];
 }
@@ -23,8 +26,10 @@ export interface ContentJobInput {
 export async function contentJob(ctx: RunCtx, input: ContentJobInput) {
   const admin = getAdminClient();
   try {
+    const playbook = input.archetypeId ? await ensurePlaybook(ctx, input.archetypeId) : null;
     const bodies = await runContentAgent(
       {
+        playbook,
         identity: input.identity,
         platform: input.platform,
         contentType: input.contentType,

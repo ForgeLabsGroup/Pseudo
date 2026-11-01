@@ -42,6 +42,12 @@ services:
         sync: false
       - key: HIGGSFIELD_BASE_URL
         sync: false
+      - key: RESEARCH_SOURCE
+        value: mock
+      - key: RESEARCH_WATCHER
+        value: mock
+      - key: APIFY_TOKEN
+        sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
       - key: ELEVENLABS_VOICE_ID

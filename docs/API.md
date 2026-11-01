@@ -8,7 +8,7 @@ Schemas: `packages/shared/src/api.ts` (the contract). Background endpoints retur
 | GET | /health | `{ ok }` (no auth) |
 | GET | /api/auth/session | `SessionResponse` (user + aiMode/publishMode) |
 | GET | /api/personas | `ListPersonasResponse` |
-| POST | /api/personas | `CreatePersonaRequest` → `{ persona, runId }` |
+| POST | /api/personas | `CreatePersonaRequest` (`description`, `archetypeId?`) → `{ persona, runId }` |
 | GET | /api/personas/:id | `{ persona, versions }` |
 | PATCH | /api/personas/:id | `UpdatePersonaRequest` (creates new version) → `{ persona }` |
 | POST | /api/personas/:id/generate | `{ instructions? }` → `{ runId }` |
@@ -33,6 +33,9 @@ Schemas: `packages/shared/src/api.ts` (the contract). Background endpoints retur
 | POST | /api/publishing/:contentId/publish | `{ socialAccountId? }` → `{ job }` (409 if not approved, 422 if platform rules fail) |
 | POST | /api/publishing/:contentId/schedule | `{ runAt, socialAccountId? }` → `{ job }` |
 | POST | /api/publishing/jobs/:id/cancel | cancel queued job |
+| GET | /api/archetypes | `{ archetypes }` (with `playbookUpdatedAt`) |
+| GET | /api/archetypes/:id | `{ archetype, playbook }` |
+| POST | /api/archetypes/:id/research | `{ force }` → `{ runId }` (refresh research playbook) |
 | GET | /api/analytics | `DashboardResponse` |
 | GET | /api/agents/runs, /api/agents/runs/:id | runs + events |
 | GET | /api/events?access_token= | **SSE** stream of `LiveEvent` |

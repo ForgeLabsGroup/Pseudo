@@ -23,6 +23,7 @@ export const toPersona = (r: Row, avatarUrl: string | null = null): Persona => (
   handle: r.handle,
   tagline: r.tagline,
   description: r.description,
+  archetypeId: r.archetype_id ?? null,
   status: r.status,
   identity: r.identity,
   currentVersion: r.current_version,

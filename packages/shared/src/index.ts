@@ -6,3 +6,4 @@ export * from './agents';
 export * from './publishing';
 export * from './api';
 export * from './safety';
+export * from './research';

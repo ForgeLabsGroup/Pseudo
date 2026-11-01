@@ -1,4 +1,7 @@
-# Implementation plan — 5-hour build, 3 people
+# Implementation plan
+
+> **Current roles and tasks: see [`ROLES.md`](ROLES.md)** (simple version, supersedes the per-person sections below where they differ — Research is owned by A, Settings by B, deploys by C).
+
 
 ## Done (foundation, already on `dev`)
 Monorepo, shared Zod contracts, full DB schema + RLS (validated), Supabase clients/mappers, AI providers (text/image/voice + mocks),

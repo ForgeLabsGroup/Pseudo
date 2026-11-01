@@ -47,6 +47,7 @@ export const LiveEvent = z.discriminatedUnion('type', [
   z.object({ type: z.literal('run.succeeded'), runId: z.uuid(), agent: AgentName }),
   z.object({ type: z.literal('run.failed'), runId: z.uuid(), agent: AgentName, error: z.string() }),
   z.object({ type: z.literal('persona.updated'), personaId: z.uuid() }),
+  z.object({ type: z.literal('archetype.updated'), archetypeId: z.uuid() }),
   z.object({ type: z.literal('content.updated'), contentId: z.uuid(), status: z.string() }),
   z.object({ type: z.literal('media.created'), assetId: z.uuid(), personaId: z.uuid().nullable() }),
   z.object({

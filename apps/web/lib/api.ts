@@ -14,9 +14,11 @@ import type {
   GenerateImageRequest,
   GeneratePersonaRequest,
   GenerateVideoRequest,
+  GetArchetypeResponse,
   GetContentResponse,
   GetPersonaResponse,
   GetRunResponse,
+  ListArchetypesResponse,
   ListContentQuery,
   ListContentResponse,
   ListMediaQuery,
@@ -152,6 +154,13 @@ export const api = {
       request<Out<typeof PublishResponse>>('POST', `/api/publishing/${contentId}/publish`, b),
     schedule: (contentId: string, b: In<typeof ScheduleRequest>) =>
       request<Out<typeof PublishResponse>>('POST', `/api/publishing/${contentId}/schedule`, b),
+  },
+
+  archetypes: {
+    list: () => request<Out<typeof ListArchetypesResponse>>('GET', '/api/archetypes'),
+    get: (id: string) => request<Out<typeof GetArchetypeResponse>>('GET', `/api/archetypes/${id}`),
+    research: (id: string, force = true) =>
+      request<RunAccepted>('POST', `/api/archetypes/${id}/research`, { force }),
   },
 
   analytics: () => request<DashboardResponse>('GET', '/api/analytics'),

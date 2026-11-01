@@ -61,6 +61,7 @@ export const Persona = z.object({
   handle: z.string().nullable(),
   tagline: z.string().nullable(),
   description: z.string().describe('The short prompt the user typed'),
+  archetypeId: z.uuid().nullable(),
   status: PersonaStatus,
   identity: PersonaIdentity.nullable(),
   currentVersion: z.number().int(),

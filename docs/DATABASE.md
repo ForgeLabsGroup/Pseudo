@@ -16,6 +16,10 @@ Source of truth: `supabase/migrations/20261101000000_init.sql`. Every user-owned
 | content_media | content↔asset with role (primary/scene/scene_clip/voiceover/video) + position |
 | publishing_jobs | queue; trigger requires approved content; partial unique index = one active job per content |
 | publishing_records | each attempt's result (external id/url or error) |
+| archetypes | global (read: any signed-in user, write: service role). trader / ecommerce / fitness_coach |
+| archetype_influencers | reference creators + handles per platform (service role only) |
+| research_video_analyses | cache: one Gemini analysis per source video |
+| archetype_playbooks | merged research output; latest row is used, refreshed after 24h |
 | analytics_snapshots | per day/platform; `is_sample` must be labelled in UI |
 
 Storage: bucket `media` (public read), path `{user_id}/{persona_id}/{uuid}.{ext}`, written only by the API (service role).

@@ -1,0 +1,47 @@
+{
+  "_readme": "Archetypes + reference influencers for Research. Fill handles (no @) before deploy, then run: pnpm --filter @pseudo/api seed:archetypes. Labels are internal only and never appear in generated content. Add platforms an influencer is on: tiktok, instagram, youtube, x.",
+  "archetypes": [
+    {
+      "slug": "trader",
+      "name": "Trader",
+      "description": "Independent trader lifestyle creator: routines, discipline, markets mindset, luxury city life.",
+      "guardrails": [
+        "Never state or imply specific returns, profits, P&L, account balances or win rates.",
+        "Never give financial advice or trade signals; frame as mindset/routine/lifestyle."
+      ],
+      "influencers": [
+        { "label": "trader-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "trader-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "trader-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+      ]
+    },
+    {
+      "slug": "ecommerce",
+      "name": "E-commerce Founder",
+      "description": "Online store / DTC brand founder: building products, behind-the-scenes, hustle and lifestyle.",
+      "guardrails": [
+        "Never state or imply revenue, profit or sales numbers, and no fake dashboard screenshots.",
+        "No 'get rich' promises, courses or income opportunities."
+      ],
+      "influencers": [
+        { "label": "ecom-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "ecom-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "ecom-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+      ]
+    },
+    {
+      "slug": "fitness_coach",
+      "name": "Fitness Coach",
+      "description": "Fitness coach creator: training, nutrition habits, discipline, transformation mindset.",
+      "guardrails": [
+        "No medical or nutrition advice presented as professional guidance; no claimed certifications.",
+        "No fake before/after transformations or client results/testimonials."
+      ],
+      "influencers": [
+        { "label": "fitness-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "fitness-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
+        { "label": "fitness-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+      ]
+    }
+  ]
+}

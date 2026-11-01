@@ -5,7 +5,7 @@ import { mockGenerate } from './mock/text';
 
 export interface GenerateJsonArgs<T extends z.ZodType> {
   /** Stable task id; also used by the mock provider to pick a fixture. */
-  task: 'persona' | 'strategy' | 'content' | 'image_prompt' | 'analytics';
+  task: 'persona' | 'strategy' | 'content' | 'image_prompt' | 'analytics' | 'research';
   system: string;
   prompt: string;
   schema: T;

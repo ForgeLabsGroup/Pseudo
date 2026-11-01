@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import { env } from './env';
 import { HttpError } from './lib/http';
 import authPlugin from './plugins/auth';
+import archetypeRoutes from './routes/archetypes';
 import contentRoutes from './routes/content';
 import mediaRoutes from './routes/media';
 import miscRoutes from './routes/misc';
@@ -28,6 +29,7 @@ export async function buildServer() {
 
   app.get('/health', async () => ({ ok: true }));
   await app.register(authPlugin);
+  await app.register(archetypeRoutes);
   await app.register(personaRoutes);
   await app.register(contentRoutes);
   await app.register(mediaRoutes);

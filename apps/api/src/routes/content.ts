@@ -105,6 +105,7 @@ export default async function contentRoutes(app: FastifyInstance) {
       contentJob(ctx, {
         personaId: body.personaId,
         personaVersion: persona.current_version,
+        archetypeId: persona.archetype_id,
         identity,
         platform: body.platform,
         contentType: body.contentType,
@@ -215,6 +216,7 @@ export default async function contentRoutes(app: FastifyInstance) {
       contentJob(ctx, {
         personaId: row.persona_id,
         personaVersion: persona.current_version,
+        archetypeId: persona.archetype_id,
         identity: parse(PersonaIdentity, persona.identity),
         platform: row.platform,
         contentType: row.content_type,

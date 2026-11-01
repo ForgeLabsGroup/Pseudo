@@ -1,9 +1,10 @@
 import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
-import { generateJson, personaContext, SAFETY_BLOCK } from '@pseudo/ai';
+import { generateJson, personaContext, playbookContext, SAFETY_BLOCK } from '@pseudo/ai';
 import {
   AI_DISCLOSURE_TAG,
   ContentBody,
   PLATFORM_LABELS,
+  type ArchetypePlaybook,
   type ContentType,
   type Platform,
   type PersonaIdentity,
@@ -19,6 +20,8 @@ export interface ContentAgentInput {
   topic?: string;
   tone?: string;
   instructions?: string;
+  /** Research playbook for the persona's archetype (Research step output). */
+  playbook?: ArchetypePlaybook | null;
 }
 
 const Angle = z.object({ pillar: z.string(), angle: z.string() });
@@ -55,7 +58,7 @@ export function buildContentGraph(progress: ProgressFn = noProgress) {
       const res = await generateJson({
         task: 'strategy',
         system: `You are the Strategy Agent for PSEUDO. Pick distinct content angles that fit the persona's content pillars.\n${SAFETY_BLOCK}`,
-        prompt: `${personaContext(input.identity)}\n\nPlatform: ${PLATFORM_LABELS[input.platform]}\nNumber of angles: ${input.count}\n${input.topic ? `Topic/campaign: ${input.topic}` : ''}`,
+        prompt: `${personaContext(input.identity)}\n\n${playbookContext(input.playbook)}\n\nPlatform: ${PLATFORM_LABELS[input.platform]}\nNumber of angles: ${input.count}\n${input.topic ? `Topic/campaign: ${input.topic}` : ''}`,
         schema: StrategyOut,
       });
       const angles = Array.from(
@@ -77,6 +80,7 @@ export function buildContentGraph(progress: ProgressFn = noProgress) {
           system: `You are the Content Agent for PSEUDO. Write in the persona's exact voice.\n${SAFETY_BLOCK}`,
           prompt: [
             personaContext(input.identity),
+            playbookContext(input.playbook),
             `CONTENT_TYPE: ${input.contentType}`,
             PLATFORM_RULES[input.contentType],
             `Pillar: ${angle.pillar}\nAngle: ${angle.angle}`,

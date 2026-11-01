@@ -3,16 +3,23 @@ import { getAdminClient } from '@pseudo/database';
 import type { PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
+import { ensurePlaybook } from './research';
 
 /** Workflow A: Persona Agent -> validate -> save identity as a new version. */
 export async function personaJob(
   ctx: RunCtx,
   personaId: string,
-  input: { description: string; instructions?: string; existing?: PersonaIdentity },
+  input: {
+    description: string;
+    instructions?: string;
+    existing?: PersonaIdentity;
+    archetypeId?: string | null;
+  },
 ) {
   const admin = getAdminClient();
   try {
-    const { identity, meta } = await runPersonaAgent(input, ctx.progress);
+    const playbook = input.archetypeId ? await ensurePlaybook(ctx, input.archetypeId) : undefined;
+    const { identity, meta } = await runPersonaAgent({ ...input, playbook }, ctx.progress);
     await ctx.progress('save', 'Saving identity as a new version');
     await saveIdentityVersion(
       ctx.userId,

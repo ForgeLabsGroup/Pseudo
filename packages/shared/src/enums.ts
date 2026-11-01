@@ -74,6 +74,7 @@ export const AGENT_NAMES = [
   'video',
   'distribution',
   'analytics',
+  'research',
 ] as const;
 export const AgentName = z.enum(AGENT_NAMES);
 export type AgentName = z.infer<typeof AgentName>;

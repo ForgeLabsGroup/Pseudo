@@ -8,7 +8,8 @@
     "start": "tsx src/server.ts",
     "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "seed:archetypes": "tsx --env-file-if-exists=../../.env src/scripts/seed-archetypes.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
@@ -17,11 +18,16 @@
     "@pseudo/ai": "workspace:*",
     "@pseudo/database": "workspace:*",
     "@pseudo/publishers": "workspace:*",
+    "@pseudo/research": "workspace:*",
     "@pseudo/shared": "workspace:*",
     "fastify": "^5.12.7",
     "fastify-plugin": "^5.0.1",
     "tsx": "^4.23.15",
     "zod": "^4.3.3"
   },
-  "devDependencies": { "@types/node": "^22.20.5", "typescript": "^5.9.3", "vitest": "^5.0.5" }
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
 }
