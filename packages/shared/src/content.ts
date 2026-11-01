@@ -25,18 +25,34 @@ export const VideoScene = z.object({
   visual: z.string().describe('What is on screen; used to pick/generate an image'),
   voiceover: z.string(),
   onScreenText: z.string(),
+  /** Job of this scene in the story: hook | setup | value | proof | payoff | cta. Optional for old rows. */
+  beat: z.string().optional(),
+  /** Camera angle/shot size for this scene's still (varies the face angle across scenes). */
+  shot: z.string().optional(),
+  /** "persona" (default) = the user on camera; "broll" = a detail shot with no people (screens, keys, coffee). */
+  subject: z.string().optional(),
+  /** Animated graphic drawn over the clip: "chart" (candlesticks trending up) | "list" (checklist of overlayItems). */
+  overlay: z.string().optional(),
+  /** Items for the "list" overlay (max ~4 short labels). */
+  overlayItems: z.array(z.string()).optional(),
 });
 export type VideoScene = z.infer<typeof VideoScene>;
+export const isBroll = (s: Pick<VideoScene, 'subject'>) => /b-?roll|object|detail/i.test(s.subject ?? '');
+export const sceneOverlay = (s: Pick<VideoScene, 'overlay'>): 'chart' | 'list' | null =>
+  /chart|candle|graph/i.test(s.overlay ?? '') ? 'chart' : /list|check|step/i.test(s.overlay ?? '') ? 'list' : null;
 
 export const ShortVideoBody = z.object({
   type: z.literal('short_video'),
   title: z.string(),
+  /** The one takeaway the viewer leaves with (a tip, mistake, myth or mini-story turn), in one sentence. */
+  idea: z.string().default(''),
   hook: z.string().describe('First 1-2 seconds, spoken + on screen'),
   scenes: z.array(VideoScene).min(1),
   caption: z.string(),
   hashtags: z.array(z.string()),
   /** Filled in by the video pipeline, not the Content Agent. */
   voiceoverAssetId: z.uuid().nullable().default(null),
+  musicAssetId: z.uuid().nullable().default(null),
   videoAssetId: z.uuid().nullable().default(null),
 });
 
