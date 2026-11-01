@@ -1,5 +1,5 @@
 'use client';
-import { PLATFORM_LABELS, type LiveEvent } from '@pseudo/shared';
+import { PLATFORM_LABELS } from '@pseudo/shared';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -11,48 +11,15 @@ import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePublishing } from '@/hooks/use-publishing';
 import { api } from '@/lib/api';
+import { describe } from '@/lib/describe-event';
 import { useUI } from '@/lib/store';
 import { cn, timeAgo } from '@/lib/utils';
-
-function describe(e: LiveEvent): { who: string; text: string; tone?: string } {
-  switch (e.type) {
-    case 'run.started':
-      return { who: e.agent, text: 'Started' };
-    case 'run.progress':
-      return { who: e.agent, text: e.message };
-    case 'run.succeeded':
-      return { who: e.agent, text: 'Finished' };
-    case 'run.failed':
-      return { who: e.agent, text: `Failed: ${e.error}`, tone: 'text-danger' };
-    case 'persona.updated':
-      return { who: 'persona', text: 'Identity updated' };
-    case 'archetype.updated':
-      return { who: 'research', text: 'Playbook refreshed' };
-    case 'content.updated':
-      return { who: 'content', text: e.status.replace('_', ' ') };
-    case 'media.created':
-      return { who: 'visual', text: 'New photo ready' };
-    case 'usage.updated':
-      return { who: e.provider, text: 'Paid request logged' };
-    case 'publish.updated':
-      return {
-        who: 'distribution',
-        text: e.status,
-        tone:
-          e.status === 'published'
-            ? 'text-success'
-            : e.status === 'failed'
-              ? 'text-danger'
-              : undefined,
-      };
-  }
-}
 
 const clock = (d: Date) =>
   d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
 /** Command Center: what needs you, what went out, and what the agents are doing right now. */
-export default function CommandCenter() {
+export function ClassicHome() {
   const { data, isLoading } = useQuery({ queryKey: ['analytics'], queryFn: api.analytics });
   const personas = useQuery({ queryKey: ['personas'], queryFn: api.personas.list });
   const queue = useQuery({
