@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 const base =
@@ -9,6 +9,9 @@ export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>
 }
 export function Textarea({ className, ...p }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className={cn(base, 'min-h-24', className)} {...p} />;
+}
+export function Select({ className, ...p }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={cn(base, 'h-10 pr-8', className)} {...p} />;
 }
 export function Label({ className, ...p }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
