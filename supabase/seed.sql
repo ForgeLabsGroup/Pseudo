@@ -1,0 +1,2 @@
+-- Demo data is created by `pnpm --filter @pseudo/api seed` (needs a real auth user),
+-- not here. This file is intentionally empty so `supabase db reset` works.
