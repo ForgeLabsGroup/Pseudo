@@ -1,15 +1,42 @@
-# Render Blueprint: Fastify API (+ in-process background jobs & publishing worker).
+# Render Blueprint: Next.js web + Fastify API (including in-process jobs).
+# The free frontend sleeps when idle; the Starter API keeps publishing jobs running.
 services:
+  - type: web
+    name: pseudo-web
+    runtime: node
+    branch: main
+    autoDeployTrigger: commit
+    region: virginia
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @pseudo/web build
+    startCommand: pnpm --filter @pseudo/web exec next start --hostname 0.0.0.0 --port $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      # Use the actual public API URL. Changes require a frontend rebuild.
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
   - type: web
     name: pseudo-api
     runtime: node
-    plan: starter            # free plan sleeps -> first demo request is slow; use starter for demo day
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @pseudo/research setup:ytdlp
+    branch: main
+    autoDeployTrigger: commit
+    region: virginia
+    plan: starter
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @pseudo/research setup:ytdlp
     startCommand: pnpm --filter @pseudo/api start
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
-        value: 22
+        value: "22"
+      - key: NODE_ENV
+        value: production
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
@@ -63,4 +90,5 @@ services:
       - key: ELEVENLABS_VOICE_ID
         sync: false
       - key: TOKEN_ENCRYPTION_KEY
-        generateValue: true
+        # Must decode to exactly 32 bytes; generate with openssl rand -base64 32.
+        sync: false

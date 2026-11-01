@@ -1,6 +1,6 @@
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import Fastify from 'fastify';
+import Fastify, { type FastifyRequest } from 'fastify';
 import { env } from './env';
 import { HttpError } from './lib/http';
 import authPlugin from './plugins/auth';
@@ -15,7 +15,21 @@ import { startPublishingWorker } from './jobs/publisher';
 import { startRunReaper } from './jobs/reaper';
 
 export async function buildServer() {
-  const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
+  const app = Fastify({
+    logger: {
+      level: process.env.LOG_LEVEL ?? 'info',
+      // EventSource sends its session in the query; never write it to application logs.
+      serializers: {
+        req: (req: FastifyRequest) => ({
+          method: req.method,
+          url: req.url.split('?')[0],
+          hostname: req.hostname,
+          remoteAddress: req.ip,
+        }),
+      },
+      redact: ['req.headers.authorization'],
+    },
+  });
   // @fastify/cors v11 only allows GET,HEAD,POST by default; edits and deletes need the rest.
   await app.register(cors, {
     origin: env.corsOrigins,
