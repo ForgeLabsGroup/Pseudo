@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "seed:archetypes": "tsx --env-file-if-exists=../../.env src/scripts/seed-archetypes.ts",
-    "research:smoke": "tsx --env-file-if-exists=../../.env src/scripts/research-smoke.ts"
+    "research:smoke": "tsx --env-file-if-exists=../../.env src/scripts/research-smoke.ts",
+    "research:run": "tsx --env-file-if-exists=../../.env src/scripts/research-run.ts",
+    "content:sample": "tsx --env-file-if-exists=../../.env src/scripts/content-sample.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
