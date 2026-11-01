@@ -186,10 +186,16 @@ export function createApifySource(): SocialSource {
         sort: 'Latest',
       });
       // Original posts only: retweets/replies aren't the creator's own voice.
-      return items
-        .filter((i) => !i.isRetweet && !i.isReply)
+      const posts = items
+        .filter((i) => !i.noResults && !i.isRetweet && !i.isReply)
         .map(mapTweet)
         .filter((p) => p.text);
+      // The actor answers with {noResults:true} placeholders when it has nothing (seen on a free plan).
+      if (!posts.length)
+        console.warn(
+          `[apify] x @${handles.x}: no tweets returned${items.some((i) => i.noResults) ? ' (actor sent noResults; may need a paid Apify plan)' : ''}`,
+        );
+      return posts;
     },
   };
 }

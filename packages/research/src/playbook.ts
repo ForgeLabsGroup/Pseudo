@@ -22,8 +22,11 @@ ${input.guardrails.map((g) => `- ${g}`).join('\n')}`,
     prompt: [
       `ARCHETYPE: ${input.archetypeName} — ${input.archetypeDescription}`,
       `VIDEO ANALYSES (${input.analyses.length}):\n${JSON.stringify(input.analyses)}`,
-      `X POSTS (${input.posts.length}, for voice/pattern study only — do not copy):\n${input.posts.map((p) => `- ${p.text}`).join('\n')}`,
+      input.posts.length
+        ? `X POSTS (${input.posts.length}, for voice/pattern study only — do not copy):\n${input.posts.map((p) => `- ${p.text}`).join('\n')}`
+        : 'X POSTS: none were collected. Set "xPostPatterns" to an empty array; do not guess X patterns from the videos.',
     ].join('\n\n'),
   });
-  return res.data;
+  // Never present invented X patterns as researched when no posts were collected.
+  return input.posts.length ? res.data : { ...res.data, xPostPatterns: [] };
 }

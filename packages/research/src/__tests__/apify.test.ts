@@ -114,6 +114,16 @@ describe('apify source', () => {
     );
   });
 
+  it('treats the X actor noResults placeholders as no posts, with a warning', async () => {
+    mockApify({
+      'apidojo~tweet-scraper': [{ body: Array.from({ length: 10 }, () => ({ noResults: true })) }],
+    });
+    expect(await createApifySource().getRecentPosts({ x: 'handle' }, 5)).toEqual([]);
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('may need a paid Apify plan'),
+    );
+  });
+
   it('keeps original X posts only', async () => {
     mockApify({
       'apidojo~tweet-scraper': [

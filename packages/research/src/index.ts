@@ -107,7 +107,10 @@ export async function researchArchetype(
       await progress('fetch', `Fetching latest content for ${inf.label}`);
       const [videos, xPosts] = await Promise.all([
         source.getRecentVideos(inf.handles, perInfluencer),
-        source.getRecentPosts(inf.handles, opts.postsPerInfluencer ?? 15).catch(() => []),
+        source.getRecentPosts(inf.handles, opts.postsPerInfluencer ?? 15).catch(async (err) => {
+          await progress('x_failed', `No X posts for ${inf.label}: ${(err as Error).message}`);
+          return [] as SourcePost[];
+        }),
       ]);
       posts.push(...xPosts);
       // Prefer the most-viewed videos when a creator is on several platforms.
