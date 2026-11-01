@@ -1,5 +1,5 @@
 'use client';
-import { PLATFORM_LABELS, type ContentItem, type Persona } from '@pseudo/shared';
+import { PLATFORM_LABELS, type ContentItem, type Persona, type Platform } from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clapperboard, Film, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -11,15 +11,18 @@ import { RunProgress } from '@/components/run-progress';
 import { Badge, StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select } from '@/components/ui/input';
+import { Input, Label, Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPreview } from '@/components/video-preview';
 import { api } from '@/lib/api';
-import { timeAgo } from '@/lib/utils';
+import { cn, timeAgo } from '@/lib/utils';
+
+const VIDEO_PLATFORMS: Platform[] = ['tiktok', 'youtube_shorts'];
 
 /**
- * Video Studio: turn short_video scripts into playable 9:16 videos.
- * Build = one photo per scene -> Higgsfield clip per scene (when enabled) -> voiceover.
+ * Video Studio: write short_video scripts (text provider, e.g. Featherless) and turn them into
+ * playable 9:16 videos. Build = one photo per scene -> Higgsfield clip per scene (when enabled)
+ * -> voiceover.
  */
 export default function VideoStudio() {
   const [personaId, setPersonaId] = useState('');
@@ -37,15 +40,10 @@ export default function VideoStudio() {
     <>
       <PageHeader
         title="Video Studio"
-        subtitle="Turn video scripts into vertical videos of you, scene by scene."
-        actions={
-          <Link href="/studio">
-            <Button>
-              <Sparkles className="h-4 w-4" /> Write a script
-            </Button>
-          </Link>
-        }
+        subtitle="Write a video script, then turn it into a vertical video of you, scene by scene."
       />
+
+      <ScriptWriter personas={personas.data?.personas ?? []} defaultPersonaId={personaId} />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Select
@@ -89,12 +87,7 @@ export default function VideoStudio() {
       {content.data && scripts.length === 0 && (
         <EmptyState
           title="No video scripts yet"
-          body="In Proof of Life, pick TikTok or YouTube Shorts and the Video script format. The script shows up here, ready to build."
-          action={
-            <Link href="/studio">
-              <Button>Write a script</Button>
-            </Link>
-          }
+          body="Write one above. The script shows up here, ready to build."
         />
       )}
       <div className="space-y-4">
@@ -108,6 +101,111 @@ export default function VideoStudio() {
         ))}
       </div>
     </>
+  );
+}
+
+/** Writes short_video scripts with the persona's voice; new scripts land in the list below via SSE. */
+function ScriptWriter({
+  personas,
+  defaultPersonaId,
+}: {
+  personas: Persona[];
+  defaultPersonaId: string;
+}) {
+  const ready = personas.filter((p) => p.identity);
+  const [chosenId, setChosenId] = useState('');
+  const pick = [chosenId, defaultPersonaId].find((id) => ready.some((p) => p.id === id));
+  const personaId = pick ?? ready[0]?.id;
+  const [platform, setPlatform] = useState<Platform>('tiktok');
+  const [topic, setTopic] = useState('');
+  const [runId, setRunId] = useState<string | null>(null);
+  const write = useMutation({
+    mutationFn: () =>
+      api.content.generate({
+        personaId: personaId!,
+        platform,
+        contentType: 'short_video',
+        topic: topic.trim() || undefined,
+        count: 1,
+        withImage: false,
+      }),
+    onSuccess: ({ runId }) => setRunId(runId),
+  });
+
+  if (personas.length > 0 && ready.length === 0)
+    return (
+      <Card className="mb-6">
+        <CardContent className="text-sm text-muted">
+          Your persona's identity is still being generated. Once it's ready you can write scripts
+          here.
+        </CardContent>
+      </Card>
+    );
+  if (!personaId) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div>
+            <Label htmlFor="script-topic">What's the video about? (optional)</Label>
+            <Input
+              id="script-topic"
+              maxLength={500}
+              placeholder="e.g. the trade I almost didn't take"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Platform</Label>
+            <div className="flex gap-2">
+              {VIDEO_PLATFORMS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPlatform(p)}
+                  className={cn(
+                    'h-10 border px-3 text-sm transition-colors',
+                    platform === p
+                      ? 'border-fg bg-surface-2 text-fg'
+                      : 'border-border-strong text-muted hover:border-subtle hover:text-fg',
+                  )}
+                >
+                  {PLATFORM_LABELS[p]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {ready.length > 1 && (
+            <Select
+              aria-label="Persona for the script"
+              className="w-auto"
+              value={personaId}
+              onChange={(e) => setChosenId(e.target.value)}
+            >
+              {ready.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+          )}
+          <Button onClick={() => write.mutate()} disabled={write.isPending}>
+            {write.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Write a script
+          </Button>
+        </div>
+        <ErrorText error={write.error} />
+        {runId && <RunProgress runId={runId} />}
+      </CardContent>
+    </Card>
   );
 }
 
