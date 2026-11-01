@@ -22,6 +22,9 @@ export interface GeneratedImage {
   model: string;
 }
 
+/** How many of the user's selfies to send as references. More = better likeness on Pro-tier models. */
+export const maxReferenceImages = () => Number(process.env.MAX_REFERENCE_IMAGES ?? 4);
+
 export async function generateImage(args: GenerateImageArgs): Promise<GeneratedImage> {
   const provider = aiConfig().image;
   if (provider === 'gemini') return geminiImage(args);
@@ -32,7 +35,7 @@ export async function generateImage(args: GenerateImageArgs): Promise<GeneratedI
 async function geminiImage(args: GenerateImageArgs): Promise<GeneratedImage> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const model = process.env.GEMINI_IMAGE_MODEL ?? 'gemini-2.5-flash-image';
-  const refs = (args.references ?? []).slice(0, 3);
+  const refs = (args.references ?? []).slice(0, maxReferenceImages());
   const prompt = refs.length
     ? `${args.prompt}\n\nThe person in this photo must be the same person shown in the reference photo(s): keep their face, skin tone, hair and build recognisable. Photorealistic.`
     : args.prompt;

@@ -1,5 +1,5 @@
 import { buildImagePrompt } from '@pseudo/agents';
-import { generateImage, type ReferenceImage } from '@pseudo/ai';
+import { generateImage, maxReferenceImages, type ReferenceImage } from '@pseudo/ai';
 import { getAdminClient, toMediaAsset } from '@pseudo/database';
 import type { MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
@@ -33,7 +33,7 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
       .eq('persona_id', input.personaId)
       .eq('source', 'reference_upload')
       .order('created_at', { ascending: false })
-      .limit(3);
+      .limit(maxReferenceImages());
     references = await Promise.all(
       (refs ?? []).map(async (r) => ({
         data: await downloadMedia(r.storage_path),

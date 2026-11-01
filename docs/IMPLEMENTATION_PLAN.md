@@ -40,8 +40,8 @@ Owns: `apps/web/app/(app)/{page.tsx,personas,studio,content}`, `apps/web/app/(au
 
 ## Person C — "Body" (media, video, publishing, data)
 Owns: `packages/{media,publishers}`, `packages/ai/src/{image,voice,mock/image}.ts`, `apps/api/src/jobs/{image,video,publisher}.ts`, `apps/web/app/(app)/{media,video,analytics,settings}`, `apps/web/components/video-preview.tsx`.
-1. **Real images** with Gemini 2.5 Flash Image + selfie references (`AI_IMAGE_PROVIDER=gemini`). Tune prompt wrapper for likeness + Miami aesthetic; handle safety blocks gracefully.
-   ✅ uploaded selfie → generated balcony/marina photo recognisably the same person.
+1. **Likeness bake-off first (by T+0:45).** Same 4–6 selfies, same 3 scenes (balcony, trading desk, marina) on: Gemini Pro image model (paid), Gemini Flash (free), and if time fal.ai `flux-pulid`. Pick the winner by eye with the whole team; set `GEMINI_IMAGE_MODEL` / add a provider in `packages/ai/src/image.ts`. Selfie tips: 4–6 photos, varied angles, good light, no sunglasses.
+   ✅ generated photos are recognisably the user in ≥ 4 of 5 attempts; Miami aesthetic consistent.
 2. **Media Library** `/media`: grid, filters (persona/kind/category), favorite, set avatar, open/download, `AiBadge` on generated, "reference" tag on selfies, generate-image dialog.
 3. **Video Studio** `/video`: list `short_video` items → "Build video" (`api.media.generateVideo`, ElevenLabs voice) → `<VideoPreview>` with captions + audio; approve from here.
    ✅ TikTok script → playable 9:16 preview with voiceover.
