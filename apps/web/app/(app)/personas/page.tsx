@@ -38,7 +38,7 @@ export default function PersonasPage() {
       {isLoading && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} className="h-40 rounded-2xl" />
+            <Skeleton key={i} className="h-40" />
           ))}
         </div>
       )}
@@ -58,8 +58,8 @@ export default function PersonasPage() {
           <Link key={p.id} href={`/personas/${p.id}`}>
             <Card
               className={cn(
-                'h-full p-5 transition hover:border-muted',
-                p.id === activeId && 'border-accent/60',
+                'h-full p-5 transition-colors hover:border-border-strong hover:bg-surface',
+                p.id === activeId && 'border-subtle',
               )}
             >
               <div className="flex items-center gap-3">
@@ -75,9 +75,11 @@ export default function PersonasPage() {
               <div className="mt-4 flex items-center gap-2">
                 <PersonaStatusBadge status={p.status} />
                 {p.characterRefs.higgsfield?.status === 'ready' && (
-                  <Badge className="text-accent-2">Likeness locked</Badge>
+                  <Badge className="text-fg">Likeness locked</Badge>
                 )}
-                {p.id === activeId && <Badge className="text-accent">Active in studio</Badge>}
+                {p.id === activeId && (
+                  <Badge className="border-link/40 text-link">Active in studio</Badge>
+                )}
               </div>
             </Card>
           </Link>

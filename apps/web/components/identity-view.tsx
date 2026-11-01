@@ -16,7 +16,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-muted">{label}</div>
+      <div className="mono-label text-subtle">{label}</div>
       <div className="mt-0.5">{children}</div>
     </div>
   );
@@ -28,7 +28,7 @@ function Chips({ items, className }: { items: string[]; className?: string }) {
       {items.map((t) => (
         <span
           key={t}
-          className={`rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-xs ${className ?? ''}`}
+          className={`border border-border-strong px-2 py-0.5 text-xs ${className ?? ''}`}
         >
           {t}
         </span>
@@ -66,7 +66,7 @@ export function IdentityView({ identity }: { identity: PersonaIdentity }) {
 
       <Section title="Personality & voice">
         <Fact label="Traits">
-          <Chips items={identity.personalityTraits} className="text-accent" />
+          <Chips items={identity.personalityTraits} className="text-fg" />
         </Fact>
         {identity.interests.length > 0 && (
           <Fact label="Interests">
@@ -108,7 +108,7 @@ export function IdentityView({ identity }: { identity: PersonaIdentity }) {
       <Section title="Content pillars">
         <div className="grid gap-3 sm:grid-cols-2">
           {identity.contentPillars.map((p) => (
-            <div key={p.name} className="rounded-xl border border-border bg-surface-2 p-3">
+            <div key={p.name} className="border border-border bg-surface p-3">
               <div className="font-medium">{p.name}</div>
               <p className="mt-1 text-muted">{p.description}</p>
             </div>
@@ -123,10 +123,7 @@ export function IdentityView({ identity }: { identity: PersonaIdentity }) {
             <div className="flex flex-wrap gap-3">
               {look.palette.map((c) => (
                 <div key={c} className="flex items-center gap-1.5 text-xs text-muted">
-                  <span
-                    className="h-5 w-5 rounded-full border border-border"
-                    style={{ background: c }}
-                  />
+                  <span className="h-5 w-5 border border-border" style={{ background: c }} />
                   {c}
                 </div>
               ))}
@@ -147,10 +144,8 @@ export function IdentityView({ identity }: { identity: PersonaIdentity }) {
       <Section title="Social bios">
         <div className="grid gap-3 sm:grid-cols-2">
           {PLATFORMS.map((p) => (
-            <div key={p} className="rounded-xl border border-border bg-surface-2 p-3">
-              <div className="text-[11px] uppercase tracking-wider text-muted">
-                {PLATFORM_LABELS[p]}
-              </div>
+            <div key={p} className="border border-border bg-surface p-3">
+              <div className="mono-label text-subtle">{PLATFORM_LABELS[p]}</div>
               <p className="mt-1 whitespace-pre-line">{identity.socialBios[p]}</p>
             </div>
           ))}

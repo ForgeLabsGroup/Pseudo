@@ -122,8 +122,8 @@ export default function NewPersonaPage() {
           <li
             key={s}
             className={cn(
-              'flex-1 border-t-2 pt-2 text-xs uppercase tracking-wider',
-              i <= step ? 'border-accent text-fg' : 'border-border text-muted',
+              'mono-label flex-1 border-t-2 pt-2',
+              i <= step ? 'border-fg text-fg' : 'border-border text-subtle',
             )}
           >
             {i + 1}. {s}
@@ -222,13 +222,15 @@ function ChoiceCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-xl border p-4 text-left transition',
-        active ? 'border-accent bg-accent/10' : 'border-border hover:border-muted',
+        'border p-4 text-left transition-colors',
+        active
+          ? 'border-fg bg-surface-2'
+          : 'border-border hover:border-border-strong hover:bg-surface',
       )}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">{title}</span>
-        {badge && <Badge className="text-accent-2">{badge}</Badge>}
+        {badge && <Badge>{badge}</Badge>}
       </div>
       <p className="mt-1 line-clamp-3 text-sm text-muted">{body}</p>
     </button>

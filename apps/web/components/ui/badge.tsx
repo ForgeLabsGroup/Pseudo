@@ -7,7 +7,7 @@ export function Badge({ className, ...p }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted',
+        'mono-label inline-flex items-center gap-1 border border-border-strong px-1.5 py-px text-[10px] text-muted',
         className,
       )}
       {...p}
@@ -17,12 +17,12 @@ export function Badge({ className, ...p }: HTMLAttributes<HTMLSpanElement>) {
 
 const STATUS_STYLE: Record<ContentStatus, string> = {
   draft: 'text-muted',
-  generating: 'text-accent border-accent/40 animate-pulse',
+  generating: 'text-fg animate-pulse',
   awaiting_approval: 'text-warning border-warning/40',
-  approved: 'text-accent-2 border-accent-2/40',
-  rejected: 'text-muted line-through',
-  scheduled: 'text-accent border-accent/40',
-  publishing: 'text-accent-2 border-accent-2/40 animate-pulse',
+  approved: 'text-fg border-subtle',
+  rejected: 'text-subtle line-through',
+  scheduled: 'text-link border-link/40',
+  publishing: 'text-link border-link/40 animate-pulse',
   published: 'text-success border-success/40',
   failed: 'text-danger border-danger/40',
 };
@@ -32,10 +32,10 @@ export function StatusBadge({ status }: { status: ContentStatus }) {
 }
 
 const PERSONA_STATUS_STYLE: Record<PersonaStatus, string> = {
-  generating: 'text-accent border-accent/40 animate-pulse',
+  generating: 'text-fg animate-pulse',
   draft: 'text-warning border-warning/40',
   active: 'text-success border-success/40',
-  archived: 'text-muted',
+  archived: 'text-subtle',
   failed: 'text-danger border-danger/40',
 };
 
@@ -50,7 +50,9 @@ export function PlatformBadge({ platform }: { platform: Platform }) {
 /** Responsible-design requirement: generated media is always labelled. */
 export function AiBadge({ className }: { className?: string }) {
   return (
-    <Badge className={cn('bg-black/60 text-white/90 backdrop-blur', className)}>AI-generated</Badge>
+    <Badge className={cn('border-transparent bg-black/75 text-white', className)}>
+      AI-generated
+    </Badge>
   );
 }
 

@@ -78,7 +78,7 @@ export default function PersonaPage() {
           />
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">{persona.name}</h1>
+              <h1 className="text-3xl font-normal tracking-[-0.03em]">{persona.name}</h1>
               <PersonaStatusBadge status={persona.status} />
               {persona.currentVersion > 0 && <Badge>v{persona.currentVersion}</Badge>}
             </div>

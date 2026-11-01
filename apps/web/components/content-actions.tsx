@@ -72,7 +72,6 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
           <>
             <Button
               size="sm"
-              variant="success"
               disabled={!!pending}
               onClick={() => run('approve', () => api.content.approve(item.id))}
             >
@@ -125,7 +124,7 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
 
         {item.status === 'scheduled' && (
           <>
-            <span className="flex items-center gap-1.5 text-sm text-accent">
+            <span className="flex items-center gap-1.5 text-sm text-link">
               <CalendarClock className="h-4 w-4" />
               {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : 'Scheduled'}
             </span>
@@ -143,7 +142,7 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
         )}
 
         {item.status === 'publishing' && (
-          <span className="flex items-center gap-2 text-sm text-accent-2">
+          <span className="flex items-center gap-2 text-sm text-link">
             <Loader2 className="h-4 w-4 animate-spin" /> Publishing…
           </span>
         )}
@@ -158,7 +157,7 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
                 href={record.externalUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-accent-2 hover:underline"
+                className="flex items-center gap-1 text-link hover:underline"
               >
                 Open post <ExternalLink className="h-3.5 w-3.5" />
               </a>
@@ -212,7 +211,7 @@ export function ContentActions({ item, compact }: { item: ContentItem; compact?:
       )}
 
       {needsVideo && !compact && ['approved', 'awaiting_approval'].includes(item.status) && (
-        <Link href="/video" className="block text-xs text-accent hover:underline">
+        <Link href="/video" className="block text-xs text-link hover:underline">
           This script needs a video before it can publish. Build it in Video Studio →
         </Link>
       )}

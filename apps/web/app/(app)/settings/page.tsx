@@ -153,7 +153,7 @@ function SocialAccounts() {
                 {linked.map((a) => (
                   <div
                     key={a.id}
-                    className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-surface-2 px-3 py-2 text-sm"
+                    className="mt-2 flex items-center justify-between gap-3 border border-border bg-surface px-3 py-2 text-sm"
                   >
                     <div className="flex items-center gap-2">
                       <span>@{a.handle}</span>

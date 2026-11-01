@@ -57,7 +57,7 @@ export function LikenessCard({ persona, selfies }: { persona: Persona; selfies: 
             <ShieldCheck className="h-4 w-4" /> Likeness locked {timeAgo(ref.updatedAt)}
           </p>
         ) : training ? (
-          <p className="flex items-center gap-2 text-accent">
+          <p className="flex items-center gap-2 text-link">
             <Loader2 className="h-4 w-4 animate-spin" /> Training your likeness…
           </p>
         ) : ref?.status === 'failed' ? (
@@ -85,7 +85,7 @@ export function LikenessCard({ persona, selfies }: { persona: Persona; selfies: 
           </Button>
           <label
             className={cn(
-              'inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm text-muted hover:bg-surface-2 hover:text-fg',
+              'inline-flex h-8 cursor-pointer items-center gap-2 px-3 font-mono text-[11px] uppercase tracking-[0.06em] text-muted hover:bg-surface-2 hover:text-fg [&_svg]:h-3.5 [&_svg]:w-3.5',
               upload.isPending && 'pointer-events-none opacity-50',
             )}
           >
@@ -200,7 +200,7 @@ export function PhotoGallery({ persona }: { persona: Persona }) {
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                'rounded-full px-3 py-1 text-xs capitalize',
+                'mono-label px-2.5 py-1',
                 filter === f ? 'bg-surface-2 text-fg' : 'text-muted hover:text-fg',
               )}
             >
@@ -251,25 +251,25 @@ function Photo({
   busy: boolean;
 }) {
   return (
-    <div className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-surface-2">
+    <div className="group relative aspect-square overflow-hidden border border-border bg-surface-2">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={asset.url} alt={asset.prompt ?? ''} className="h-full w-full object-cover" />
       <div className="absolute left-2 top-2 flex gap-1">
         {asset.aiGenerated ? (
           <AiBadge />
         ) : (
-          <Badge className="bg-black/60 text-white/90">Selfie</Badge>
+          <Badge className="border-transparent bg-black/75 text-white">Selfie</Badge>
         )}
       </div>
       {isAvatar ? (
-        <Badge className="absolute bottom-2 left-2 bg-black/60 text-success">
+        <Badge className="absolute bottom-2 left-2 border-transparent bg-black/75 text-success">
           <Check className="h-3 w-3" /> Avatar
         </Badge>
       ) : (
         <button
           onClick={onSetAvatar}
           disabled={busy}
-          className="absolute bottom-2 left-2 rounded-full bg-black/70 px-2.5 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-2 left-2 bg-black/75 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-white opacity-0 transition group-hover:opacity-100 focus:opacity-100"
         >
           {busy ? 'Setting…' : 'Set as avatar'}
         </button>

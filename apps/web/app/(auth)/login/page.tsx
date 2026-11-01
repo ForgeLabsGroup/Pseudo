@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input, Label } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase';
@@ -11,32 +11,39 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) router.replace('/');
+    });
+  }, [router]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const { error } =
+    setNotice(null);
+    const { data, error } =
       mode === 'signin'
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
     setBusy(false);
     if (error) return setError(error.message);
+    // Signup returns no session when the project requires email confirmation.
+    if (!data.session) return setNotice('Check your email to confirm your account, then sign in.');
     router.replace('/');
   }
 
   return (
-    <main className="bg-glow flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        <div className="mb-10 text-center">
-          <div className="text-4xl font-bold tracking-[0.3em] text-gradient">PSEUDO</div>
-          <p className="mt-3 text-muted">Your alter ego.</p>
+        <div className="mb-8 text-center">
+          <div className="font-mono text-lg font-medium tracking-[0.24em]">PSEUDO</div>
+          <h1 className="mt-6 text-3xl font-normal tracking-[-0.03em]">Your alter ego.</h1>
         </div>
-        <form
-          onSubmit={submit}
-          className="space-y-4 rounded-2xl border border-border bg-surface/80 p-6 backdrop-blur"
-        >
+        <form onSubmit={submit} className="space-y-4 border border-border bg-surface p-6">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -59,6 +66,7 @@ export default function LoginPage() {
             />
           </div>
           {error && <p className="text-sm text-danger">{error}</p>}
+          {notice && <p className="text-sm text-muted">{notice}</p>}
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? '…' : mode === 'signin' ? 'Enter' : 'Create account'}
           </Button>

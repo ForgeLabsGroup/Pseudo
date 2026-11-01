@@ -114,7 +114,7 @@ function ContentStudio() {
       {content.isLoading && (
         <div className="columns-1 gap-4 md:columns-2 2xl:columns-3">
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="mb-4 h-80 break-inside-avoid rounded-2xl" />
+            <Skeleton key={i} className="mb-4 h-80 break-inside-avoid" />
           ))}
         </div>
       )}
