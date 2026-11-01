@@ -26,12 +26,17 @@ if (!user) {
 }
 const userId = user!.id;
 
-const { data: existing } = await admin
+// Not maybeSingle(): mock-mode personas reuse Alex's handle, and maybeSingle() errors on >1 match,
+// which used to read as "not found" and insert another Alex on every re-run.
+const { data: matches, error: lookupError } = await admin
   .from('personas')
   .select('id')
   .eq('user_id', userId)
   .eq('handle', ALEX_STERLING.handle)
-  .maybeSingle();
+  .order('created_at')
+  .limit(1);
+if (lookupError) throw lookupError;
+const existing = matches[0];
 if (existing) {
   console.log(`Alex Sterling already exists (${existing.id}) for ${email}`);
 } else {
