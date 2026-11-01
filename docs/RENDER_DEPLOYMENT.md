@@ -22,6 +22,12 @@ The build installs development dependencies explicitly because the Next.js build
 
 ## Database and login
 
+All API routes except the GET/HEAD health check and CORS preflight require a Supabase access token verified against this project's Auth service. All current and future Supabase users may access the API; there is no email or user allowlist. Invalid, expired, or missing sessions are rejected before route handlers run. Anyone who can sign up or sign in with shared demo credentials receives this same access.
+
+The API permits ten write requests per signed-in user per minute, returning `429` and `Retry-After` after that. This limit is held in memory per API instance and resets on restart; it is not a dollar budget or a distributed quota. Use provider spending limits for a financial cap. Query-string tokens are accepted only on GET `/api/events`; application request logs omit query strings. Other routes require a bearer Authorization header.
+
+These controls take effect only after this code is deployed. Merging into `dev` alone does not update the services that track `main`.
+
 Apply pending migrations to the intended Supabase project before using the deployed app. Do not seed production demo accounts automatically. Set the Supabase Auth Site URL and any required redirect URLs to the frontend's production URL.
 
 ## Verify
