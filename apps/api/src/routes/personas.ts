@@ -17,7 +17,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import { db, HttpError, must, parse } from '../lib/http';
 import { createRun, runInBackground } from '../lib/runs';
-import { uploadMedia } from '../lib/storage';
+import { removeMedia, uploadMedia } from '../lib/storage';
 import { characterJob } from '../jobs/character';
 import { personaJob, saveIdentityVersion } from '../jobs/persona';
 
@@ -35,12 +35,13 @@ export default async function personaRoutes(app: FastifyInstance) {
 
   app.post('/api/personas', async (req, reply) => {
     const body = parse(CreatePersonaRequest, req.body);
+    const basics = { ...(body.name ? { name: body.name } : {}), ...body.basics };
     const row = db(
       await req.db
         .from('personas')
         .insert({
           user_id: req.user.id,
-          name: body.name ?? 'Untitled persona',
+          name: basics.name ?? 'Untitled persona',
           description: body.description,
           archetype_id: body.archetypeId ?? null,
           status: body.generate ? 'generating' : 'draft',
@@ -54,6 +55,7 @@ export default async function personaRoutes(app: FastifyInstance) {
       runInBackground(req.user.id, runId, 'persona', row.id, (ctx) =>
         personaJob(ctx, row.id, {
           description: body.description,
+          basics,
           archetypeId: body.archetypeId ?? null,
         }),
       );
@@ -94,6 +96,32 @@ export default async function personaRoutes(app: FastifyInstance) {
     if (body.status) db(await req.db.from('personas').update({ status: body.status }).eq('id', id));
     const fresh = db(await req.db.from('personas').select(PERSONA_SELECT).eq('id', id).single());
     return { persona: toPersona(fresh) };
+  });
+
+  /**
+   * Hard delete. Versions, content and campaigns cascade in the DB, but media_assets only set
+   * persona_id null, so the persona's photos (including the user's selfies) are deleted here too.
+   * Files go first: if that fails nothing is deleted and the request can be retried.
+   */
+  app.delete('/api/personas/:id', async (req, reply) => {
+    const { id } = parse(Id, req.params);
+    must(db(await req.db.from('personas').select('id').eq('id', id).maybeSingle()), 'Persona');
+    const assets = db(
+      await req.db.from('media_assets').select('id, storage_path').eq('persona_id', id),
+    );
+    await removeMedia(assets.map((a) => a.storage_path as string));
+    db(await req.db.from('personas').delete().eq('id', id));
+    if (assets.length)
+      db(
+        await req.db
+          .from('media_assets')
+          .delete()
+          .in(
+            'id',
+            assets.map((a) => a.id as string),
+          ),
+      );
+    reply.code(204);
   });
 
   app.post('/api/personas/:id/generate', async (req, reply): Promise<RunAccepted> => {

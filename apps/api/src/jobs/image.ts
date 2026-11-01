@@ -1,10 +1,11 @@
 import { buildImagePrompt } from '@pseudo/agents';
-import { generateImage, maxReferenceImages, type ReferenceImage } from '@pseudo/ai';
+import { aiConfig, generateImage, maxReferenceImages, type ReferenceImage } from '@pseudo/ai';
 import { getAdminClient, toMediaAsset } from '@pseudo/database';
 import type { MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { downloadMedia, uploadMedia } from '../lib/storage';
+import { trackHiggsfield } from '../lib/usage';
 import { readyCharacterId } from './character';
 
 export interface ImageJobInput {
@@ -50,12 +51,12 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
       : 'Generating image',
   );
   const characterId = await readyCharacterId(input.personaId);
-  const img = await generateImage({
-    prompt,
-    references,
-    characterId,
-    aspectRatio: input.aspectRatio ?? '4:5',
-  });
+  const generate = () =>
+    generateImage({ prompt, references, characterId, aspectRatio: input.aspectRatio ?? '4:5' });
+  const img =
+    aiConfig().image === 'higgsfield'
+      ? await trackHiggsfield(ctx, { operation: 'image', personaId: input.personaId }, generate)
+      : await generate();
   const { path, url } = await uploadMedia(ctx.userId, input.personaId, img.data, img.mimeType);
   const { data: row, error } = await admin
     .from('media_assets')

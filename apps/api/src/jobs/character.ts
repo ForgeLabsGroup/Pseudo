@@ -3,6 +3,7 @@ import { getAdminClient } from '@pseudo/database';
 import type { CharacterRef } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
+import { trackHiggsfield } from '../lib/usage';
 
 /**
  * Train the user's likeness at the provider (Higgsfield Soul ID) from their reference selfies.
@@ -41,15 +42,18 @@ export async function characterJob(ctx: RunCtx, personaId: string, provider: 'hi
   await ctx.progress('upload', `Sending ${imageUrls.length} selfie(s) to ${provider}`);
   await setRef({ id: null, status: 'training', error: null });
   try {
-    const { id } = await createCharacter({ name: persona?.name ?? 'Persona', imageUrls });
-    await setRef({ id, status: 'training', error: null });
-    await ctx.progress('train', 'Training your likeness (this can take a few minutes)');
-    await waitFor(async () => {
-      const s = await getCharacter(id);
-      return {
-        done: s.status === 'ready',
-        failed: s.status === 'failed' ? (s.error ?? 'Training failed') : undefined,
-      };
+    const id = await trackHiggsfield(ctx, { operation: 'character', personaId }, async () => {
+      const { id } = await createCharacter({ name: persona?.name ?? 'Persona', imageUrls });
+      await setRef({ id, status: 'training', error: null });
+      await ctx.progress('train', 'Training your likeness (this can take a few minutes)');
+      await waitFor(async () => {
+        const s = await getCharacter(id);
+        return {
+          done: s.status === 'ready',
+          failed: s.status === 'failed' ? (s.error ?? 'Training failed') : undefined,
+        };
+      });
+      return id;
     });
     await setRef({ id, status: 'ready', error: null });
     return { output: { provider, characterId: id } };

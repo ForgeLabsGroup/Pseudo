@@ -40,6 +40,7 @@ export function useLiveEvents(enabled: boolean) {
           qc.invalidateQueries({ queryKey: ['content'] });
         if (e.type === 'media.created') qc.invalidateQueries({ queryKey: ['media'] });
         if (e.type === 'publish.updated') qc.invalidateQueries({ queryKey: ['publishing'] });
+        if (e.type === 'usage.updated') qc.invalidateQueries({ queryKey: ['usage'] });
         qc.invalidateQueries({ queryKey: ['analytics'] });
       };
       es.onerror = () => {

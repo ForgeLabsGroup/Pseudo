@@ -32,6 +32,8 @@ function describe(e: LiveEvent): { who: string; text: string; tone?: string } {
       return { who: 'content', text: e.status.replace('_', ' ') };
     case 'media.created':
       return { who: 'visual', text: 'New photo ready' };
+    case 'usage.updated':
+      return { who: e.provider, text: 'Paid request logged' };
     case 'publish.updated':
       return {
         who: 'distribution',

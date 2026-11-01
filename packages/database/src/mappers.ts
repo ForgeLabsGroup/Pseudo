@@ -9,6 +9,7 @@ import type {
   MediaAsset,
   Persona,
   PersonaVersion,
+  ProviderUsage,
   PublishingJob,
   PublishingRecord,
   SocialAccount,
@@ -151,4 +152,17 @@ export const toPublishingRecord = (r: Row): PublishingRecord => ({
   externalUrl: r.external_url,
   error: r.error,
   createdAt: r.created_at,
+});
+
+export const toProviderUsage = (r: Row): ProviderUsage => ({
+  id: r.id,
+  personaId: r.persona_id,
+  runId: r.agent_run_id,
+  provider: r.provider,
+  operation: r.operation,
+  status: r.status,
+  error: r.error,
+  videoSeconds: r.video_seconds === null ? null : Number(r.video_seconds),
+  startedAt: r.started_at,
+  finishedAt: r.finished_at,
 });

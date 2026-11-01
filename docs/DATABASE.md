@@ -21,6 +21,7 @@ Source of truth: `supabase/migrations/20261101000000_init.sql`. Every user-owned
 | research_video_analyses | cache: one analysis per source video (+ `storage_path`, `content_hash`, `size_bytes`, `mime_type`, `duration_s`, `transcript`, `frames_used` when the video was downloaded) |
 | archetype_playbooks | merged research output; latest row is used, refreshed after 24h |
 | analytics_snapshots | per day/platform; `is_sample` must be labelled in UI |
+| provider_usage | one row per paid Higgsfield request (character/image/video, pending→succeeded/failed, `video_seconds`); written by the API, users can only read their own |
 
 Storage: bucket `media` (public read), path `{user_id}/{persona_id}/{uuid}.{ext}`, written only by the API (service role).
 Storage: bucket `research-videos` (**private**, no policies, 50 MiB, video/* only), path `{archetype_slug}/{influencer_label}/{platform}-{hash}.mp4`. API-only; view via `researchVideoUrl()` signed URLs.

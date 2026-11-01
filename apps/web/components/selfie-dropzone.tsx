@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export const SELFIE_MIN = 3;
-export const SELFIE_MAX = 6;
+export const SELFIE_MAX = 20;
 const ACCEPT = ['image/jpeg', 'image/png', 'image/webp'];
 
 export type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 
-/** Pick 3–6 selfies of yourself. Upload happens in the parent (needs the persona id). */
+/** Pick 3–20 selfies of yourself. Upload happens in the parent (needs the persona id). */
 export function SelfieDropzone({
   files,
   onChange,

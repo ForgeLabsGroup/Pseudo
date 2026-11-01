@@ -7,3 +7,4 @@ export * from './publishing';
 export * from './api';
 export * from './safety';
 export * from './research';
+export * from './usage';

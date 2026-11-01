@@ -47,7 +47,7 @@ Status as of 2026-11-01: `[x]` = done and verified, `[ ]` = still open.
 
 ## 6. Demo run (rehearse twice)
 1. [ ] Log in as the demo user → Command Center shows Alex, the approval queue and recent publishes
-2. [ ] Create a fresh persona live: archetype → description → 3–6 selfies → live progress → persona page
+2. [ ] Create a fresh persona live: archetype → basics (name, age, location…) → description → 3–20 selfies → live progress → persona page
    (fallback: open the pre-created one)
 3. [ ] Lock likeness → generate a photo that looks like the selfie person
 4. [ ] Proof of Life: generate IG + X + TikTok content, steps tick through Research → Ideas → Writing → Visual

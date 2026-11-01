@@ -10,8 +10,10 @@ import {
 import type { FastifyInstance } from 'fastify';
 import { generatePersonaImage } from '../jobs/image';
 import { videoJob } from '../jobs/video';
+import { publish } from '../lib/bus';
 import { db, HttpError, must, parse } from '../lib/http';
 import { createRun, runInBackground } from '../lib/runs';
+import { removeMedia } from '../lib/storage';
 
 export default async function mediaRoutes(app: FastifyInstance) {
   app.get('/api/media', async (req) => {
@@ -33,11 +35,49 @@ export default async function mediaRoutes(app: FastifyInstance) {
     const patch: Record<string, unknown> = {};
     if (body.isFavorite !== undefined) patch.is_favorite = body.isFavorite;
     if (body.category) patch.category = body.category;
-    const row = must(
-      db(await req.db.from('media_assets').update(patch).eq('id', id).select('*').maybeSingle()),
+    // An empty update returns no row, which surfaced as a bogus 404.
+    const query = Object.keys(patch).length
+      ? req.db.from('media_assets').update(patch).eq('id', id).select('*')
+      : req.db.from('media_assets').select('*').eq('id', id);
+    const row = must(db(await query.maybeSingle()), 'Asset');
+    return { asset: toMediaAsset(row) };
+  });
+
+  /**
+   * Deletes the row and its file. The DB nulls personas.avatar_asset_id and cascades
+   * content_media; rendered video/voiceover ids inside short_video bodies are cleared here.
+   */
+  app.delete('/api/media/:id', async (req, reply) => {
+    const { id } = parse(Id, req.params);
+    const asset = must(
+      db(await req.db.from('media_assets').select('*').eq('id', id).maybeSingle()),
       'Asset',
     );
-    return { asset: toMediaAsset(row) };
+    await removeMedia([asset.storage_path]);
+    db(await req.db.from('media_assets').delete().eq('id', id));
+    if (asset.kind !== 'image') {
+      const items = db(
+        await req.db
+          .from('content_items')
+          .select('id, status, body')
+          .or(`body->>videoAssetId.eq.${id},body->>voiceoverAssetId.eq.${id}`),
+      );
+      for (const item of items) {
+        const body = { ...item.body };
+        if (body.videoAssetId === id) body.videoAssetId = null;
+        if (body.voiceoverAssetId === id) body.voiceoverAssetId = null;
+        // Same rule as editing: approved content goes back for approval.
+        const status = item.status === 'approved' ? 'awaiting_approval' : item.status;
+        db(
+          await req.db
+            .from('content_items')
+            .update({ body, status, ...(status !== item.status ? { approved_at: null } : {}) })
+            .eq('id', item.id),
+        );
+        publish(req.user.id, { type: 'content.updated', contentId: item.id, status });
+      }
+    }
+    reply.code(204);
   });
 
   /** Set an asset as the persona's avatar. */

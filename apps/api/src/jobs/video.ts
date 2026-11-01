@@ -1,9 +1,10 @@
-import { generateVideoClip, generateVoice } from '@pseudo/ai';
+import { aiConfig, generateVideoClip, generateVoice } from '@pseudo/ai';
 import { getAdminClient } from '@pseudo/database';
 import { ShortVideoBody, type PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { uploadMedia } from '../lib/storage';
+import { trackHiggsfield } from '../lib/usage';
 import { generatePersonaImage } from './image';
 
 /**
@@ -68,11 +69,20 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
       position: i,
     });
     // Real motion: animate the still (Higgsfield). Mock mode returns null -> template animates the still.
-    const clip = await generateVideoClip({
-      imageUrl: still.url,
-      prompt: scene.visual,
-      durationSec: scene.durationSec,
-    });
+    const animate = () =>
+      generateVideoClip({
+        imageUrl: still.url,
+        prompt: scene.visual,
+        durationSec: scene.durationSec,
+      });
+    const clip =
+      aiConfig().video === 'higgsfield'
+        ? await trackHiggsfield(
+            ctx,
+            { operation: 'video', personaId: input.personaId, videoSeconds: scene.durationSec },
+            animate,
+          )
+        : await animate();
     if (clip) {
       await ctx.progress('animate', `Animated scene ${i + 1}`);
       const { path, url } = await uploadMedia(

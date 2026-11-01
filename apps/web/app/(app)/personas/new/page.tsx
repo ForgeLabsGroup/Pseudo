@@ -1,4 +1,5 @@
 'use client';
+import type { PersonaBasics } from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -15,23 +16,38 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label, Textarea } from '@/components/ui/input';
+import { Input, Label, Textarea } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 import { useUI } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
-const STEPS = ['Archetype', 'Description', 'Selfies'];
+const STEPS = ['Archetype', 'Basics', 'Description', 'Selfies'];
+type Basics = Required<{ [K in keyof PersonaBasics]: string }>;
+const BASIC_FIELDS: { key: keyof Basics; label: string; placeholder: string }[] = [
+  { key: 'name', label: 'Name', placeholder: 'Alex Sterling' },
+  { key: 'handle', label: 'Handle (optional)', placeholder: 'alexsterling' },
+  { key: 'ageRange', label: 'Age (optional)', placeholder: '28' },
+  { key: 'location', label: 'Location (optional)', placeholder: 'Miami, Florida' },
+  { key: 'occupation', label: 'Occupation (optional)', placeholder: 'Independent trader' },
+];
 const DESC_MIN = 10;
 const DESC_MAX = 2000;
 
-/** New persona: archetype -> description -> selfies -> create (agent runs) -> persona page. */
+/** New persona: archetype -> basics -> description -> selfies -> create (agent runs) -> persona page. */
 export default function NewPersonaPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const setActivePersona = useUI((s) => s.setActivePersona);
   const [step, setStep] = useState(0);
   const [archetypeId, setArchetypeId] = useState<string | null>(null);
+  const [basics, setBasics] = useState<Basics>({
+    name: '',
+    handle: '',
+    ageRange: '',
+    location: '',
+    occupation: '',
+  });
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [uploads, setUploads] = useState<UploadState[]>([]);
@@ -44,6 +60,12 @@ export default function NewPersonaPage() {
     mutationFn: async () => {
       const res = await api.personas.create({
         description: description.trim(),
+        // Blank optional fields are left for the Persona Agent to invent.
+        basics: Object.fromEntries(
+          Object.entries(basics)
+            .map(([k, v]) => [k, k === 'handle' ? v.trim().replace(/^@/, '') : v.trim()])
+            .filter(([, v]) => v),
+        ),
         archetypeId: archetypeId ?? undefined,
       });
       setCreated({ id: res.persona.id, runId: res.runId });
@@ -81,8 +103,9 @@ export default function NewPersonaPage() {
 
   const canNext =
     step === 0 ||
-    (step === 1 && description.trim().length >= DESC_MIN) ||
-    (step === 2 && files.length >= SELFIE_MIN && files.length <= SELFIE_MAX);
+    (step === 1 && basics.name.trim().length > 0) ||
+    (step === 2 && description.trim().length >= DESC_MIN) ||
+    (step === 3 && files.length >= SELFIE_MIN && files.length <= SELFIE_MAX);
 
   if (created)
     return (
@@ -158,6 +181,28 @@ export default function NewPersonaPage() {
           )}
 
           {step === 1 && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {BASIC_FIELDS.map((f, i) => (
+                <div key={f.key} className={i === 0 ? 'sm:col-span-2' : undefined}>
+                  <Label htmlFor={f.key}>{f.label}</Label>
+                  <Input
+                    id={f.key}
+                    maxLength={100}
+                    autoFocus={i === 0}
+                    placeholder={f.placeholder}
+                    value={basics[f.key]}
+                    onChange={(e) => setBasics((b) => ({ ...b, [f.key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+              <p className="text-xs text-muted sm:col-span-2">
+                These are used exactly as typed. Leave a field blank and the Persona Agent fills it
+                in. Everything stays editable on the persona page.
+              </p>
+            </div>
+          )}
+
+          {step === 2 && (
             <div>
               <Label htmlFor="desc">Describe your alter ego</Label>
               <Textarea
@@ -177,7 +222,7 @@ export default function NewPersonaPage() {
             </div>
           )}
 
-          {step === 2 && <SelfieDropzone files={files} onChange={setFiles} />}
+          {step === 3 && <SelfieDropzone files={files} onChange={setFiles} />}
 
           <ErrorText error={create.error} />
           <div className="flex justify-between">

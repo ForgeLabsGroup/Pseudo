@@ -1,7 +1,13 @@
 'use client';
-import { PLATFORM_LABELS, PLATFORMS, type Platform } from '@pseudo/shared';
+import {
+  PLATFORM_LABELS,
+  PLATFORMS,
+  type Platform,
+  type UsageOperation,
+  type UsageStatus,
+} from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bot, Link2, Send, Unlink } from 'lucide-react';
+import { Bot, ExternalLink, Link2, Send, Unlink } from 'lucide-react';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
 import { PageHeader } from '@/components/page-header';
@@ -12,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 import { useUI } from '@/lib/store';
+import { timeAgo } from '@/lib/utils';
 
 /** Settings: which modes the backend runs in, and the (mock) social accounts to publish to. */
 export default function SettingsPage() {
@@ -50,6 +57,7 @@ export default function SettingsPage() {
               )}
             </CardContent>
           </Card>
+          <HiggsfieldUsage />
           <Card>
             <CardHeader>
               <CardTitle>Account</CardTitle>
@@ -98,6 +106,126 @@ function ModeRow({
         </div>
         <p className="mt-0.5 text-muted">{live ? liveText : mockText}</p>
       </div>
+    </div>
+  );
+}
+
+const OPERATION_LABELS: Record<UsageOperation, string> = {
+  character: 'Likeness training',
+  image: 'Photos',
+  video: 'Video clips',
+};
+
+const USAGE_STATUS_STYLE: Record<UsageStatus, string> = {
+  pending: 'text-fg animate-pulse',
+  succeeded: 'text-success border-success/40',
+  failed: 'text-danger border-danger/40',
+};
+
+/** Every paid Higgsfield request PSEUDO made for this user, from the API's provider_usage ledger. */
+function HiggsfieldUsage() {
+  const usage = useQuery({ queryKey: ['usage', 'higgsfield'], queryFn: api.usage.higgsfield });
+  const personas = useQuery({ queryKey: ['personas'], queryFn: api.personas.list });
+  const personaName = (id: string | null) =>
+    personas.data?.personas.find((p) => p.id === id)?.name ?? null;
+  const u = usage.data;
+  const live = Boolean(u && (u.routes.image || u.routes.video));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Higgsfield usage</CardTitle>
+        {u && (
+          <Badge
+            className={live ? 'border-success/40 text-success' : 'border-warning/40 text-warning'}
+          >
+            {live ? 'Live' : 'Off'}
+          </Badge>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        {usage.isLoading && <Skeleton className="h-24" />}
+        <ErrorText error={usage.error} />
+        {u && (
+          <>
+            <p className="text-muted">
+              {live
+                ? `Sends ${[u.routes.image && 'photos', u.routes.video && 'video clips'].filter(Boolean).join(' and ')} to Higgsfield. Likeness training always does.`
+                : 'Photos and clips use another provider, so they cost no Higgsfield credits. Likeness training still uses Higgsfield.'}
+              {!u.configured && ' No Higgsfield API key is set on the server.'}
+            </p>
+
+            <dl className="grid grid-cols-2 gap-2">
+              <Stat label="Requests" value={u.totals.requests} />
+              <Stat label="Succeeded" value={u.totals.succeeded} />
+              <Stat label="Failed" value={u.totals.failed} />
+              <Stat label="Video sec" value={u.totals.videoSeconds} />
+            </dl>
+
+            <ul className="space-y-1">
+              {u.byOperation.map((o) => (
+                <li key={o.operation} className="flex items-center justify-between gap-2">
+                  <span className="text-muted">{OPERATION_LABELS[o.operation]}</span>
+                  <span className="whitespace-nowrap font-mono text-xs">
+                    {o.succeeded} ok · {o.failed} failed
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {u.recent.length > 0 && (
+              <div>
+                <div className="mono-label mb-1 text-subtle">Recent requests</div>
+                <ul className="max-h-64 divide-y divide-border overflow-y-auto border border-border">
+                  {u.recent.map((r) => (
+                    <li key={r.id} className="space-y-1 px-2 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {OPERATION_LABELS[r.operation]}
+                          {r.videoSeconds !== null && ` · ${r.videoSeconds}s`}
+                        </span>
+                        <Badge className={USAGE_STATUS_STYLE[r.status]}>{r.status}</Badge>
+                      </div>
+                      <div className="truncate font-mono text-xs text-subtle">
+                        {timeAgo(r.startedAt)}
+                        {personaName(r.personaId) && ` · ${personaName(r.personaId)}`}
+                      </div>
+                      {r.error && (
+                        <div className="truncate text-xs text-danger" title={r.error}>
+                          {r.error}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <p className="text-xs text-muted">
+              Higgsfield charges only for successful requests. Its API doesn&apos;t report credits,
+              so your balance and exact spend are in{' '}
+              <a
+                href={u.dashboardUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-link hover:underline"
+              >
+                the Higgsfield dashboard <ExternalLink className="h-3 w-3" />
+              </a>
+              .
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="border border-border bg-surface px-2 py-1.5">
+      <dt className="mono-label text-subtle">{label}</dt>
+      <dd className="font-mono text-base">{value}</dd>
     </div>
   );
 }

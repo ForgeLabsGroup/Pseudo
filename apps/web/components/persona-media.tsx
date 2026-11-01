@@ -6,7 +6,7 @@ import {
   type Persona,
 } from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, Check, ImagePlus, Loader2, ShieldCheck, X } from 'lucide-react';
+import { Camera, Check, ImagePlus, Loader2, ShieldCheck, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
 import { RunProgress } from '@/components/run-progress';
@@ -23,6 +23,51 @@ export function usePersonaImages(personaId: string) {
     queryKey: ['media', { personaId, kind: 'image' }],
     queryFn: () => api.media.list({ personaId, kind: 'image' }),
   });
+}
+
+/** Two-step delete overlay for a media tile: first click arms it, second click deletes. */
+export function DeleteMediaButton({ assetId }: { assetId: string }) {
+  const qc = useQueryClient();
+  const [armed, setArmed] = useState(false);
+  const remove = useMutation({
+    mutationFn: () => api.media.remove(assetId),
+    onSettled: () => {
+      // Avatar and content attachments can change too.
+      for (const key of ['media', 'personas', 'content'])
+        void qc.invalidateQueries({ queryKey: [key] });
+    },
+  });
+  return (
+    <div className="absolute right-2 top-2 flex gap-1">
+      {armed && !remove.isPending && (
+        <button
+          onClick={() => setArmed(false)}
+          className="bg-black/75 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-white"
+        >
+          Keep
+        </button>
+      )}
+      <button
+        aria-label={armed ? 'Confirm delete' : 'Delete'}
+        title={remove.error ? String(remove.error.message) : undefined}
+        disabled={remove.isPending}
+        onClick={() => (armed ? remove.mutate() : setArmed(true))}
+        className={cn(
+          'flex items-center gap-1 bg-black/75 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-white transition',
+          armed || remove.error
+            ? 'text-danger'
+            : 'opacity-0 group-hover:opacity-100 focus:opacity-100',
+        )}
+      >
+        {remove.isPending ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Trash2 className="h-3 w-3" />
+        )}
+        {remove.error ? 'Retry' : armed ? 'Delete' : null}
+      </button>
+    </div>
+  );
 }
 
 /** "Lock my likeness": trains the user's face at Higgsfield from their selfies. */
@@ -261,6 +306,7 @@ function Photo({
           <Badge className="border-transparent bg-black/75 text-white">Selfie</Badge>
         )}
       </div>
+      <DeleteMediaButton assetId={asset.id} />
       {isAvatar ? (
         <Badge className="absolute bottom-2 left-2 border-transparent bg-black/75 text-success">
           <Check className="h-3 w-3" /> Avatar

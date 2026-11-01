@@ -1,7 +1,7 @@
 'use client';
 import type { PersonaVersion } from '@pseudo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, RefreshCw, Sparkles } from 'lucide-react';
+import { Pencil, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
@@ -30,6 +30,7 @@ export default function PersonaPage() {
   const qc = useQueryClient();
   const setActivePersona = useUI((s) => s.setActivePersona);
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['personas', id],
@@ -49,6 +50,17 @@ export default function PersonaPage() {
   const regenerate = useMutation({
     mutationFn: () => api.personas.generate(id),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['runs'] }),
+  });
+  const remove = useMutation({
+    mutationFn: () => api.personas.remove(id),
+    onSuccess: () => {
+      if (useUI.getState().activePersonaId === id) setActivePersona(null);
+      // Mark stale without refetching now: this page's own queries would 404 while it unmounts.
+      // The personas list refetches when it mounts.
+      for (const key of ['personas', 'media', 'content'])
+        void qc.invalidateQueries({ queryKey: [key], refetchType: 'none' });
+      router.push('/personas');
+    },
   });
 
   if (isLoading)
@@ -111,9 +123,24 @@ export default function PersonaPage() {
               <Sparkles className="h-4 w-4" /> Create content
             </Button>
           )}
+          {confirmDelete ? (
+            <>
+              <Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>
+                <Trash2 className="h-4 w-4" />
+                {remove.isPending ? 'Deleting…' : 'Delete persona, content & photos'}
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+              <Trash2 className="h-4 w-4" /> Delete
+            </Button>
+          )}
         </div>
       </div>
-      <ErrorText error={activate.error ?? regenerate.error} className="mb-4" />
+      <ErrorText error={activate.error ?? regenerate.error ?? remove.error} className="mb-4" />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

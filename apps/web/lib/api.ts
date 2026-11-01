@@ -18,6 +18,7 @@ import type {
   GetContentResponse,
   GetPersonaResponse,
   GetRunResponse,
+  HiggsfieldUsageResponse,
   ListArchetypesResponse,
   ListContentQuery,
   ListContentResponse,
@@ -96,6 +97,8 @@ export const api = {
       request<Out<typeof CreatePersonaResponse>>('POST', '/api/personas', b),
     update: (id: string, b: In<typeof UpdatePersonaRequest>) =>
       request<Out<typeof UpdatePersonaResponse>>('PATCH', `/api/personas/${id}`, b),
+    /** Also deletes the persona's content, versions and photos (including selfies). */
+    remove: (id: string) => request<void>('DELETE', `/api/personas/${id}`),
     generate: (id: string, b: In<typeof GeneratePersonaRequest> = {}) =>
       request<RunAccepted>('POST', `/api/personas/${id}/generate`, b),
     trainCharacter: (id: string) =>
@@ -131,6 +134,7 @@ export const api = {
     update: (id: string, b: In<typeof UpdateMediaRequest>) =>
       request('PATCH', `/api/media/${id}`, b),
     setAvatar: (id: string) => request('POST', `/api/media/${id}/set-avatar`),
+    remove: (id: string) => request<void>('DELETE', `/api/media/${id}`),
     generateImage: (b: In<typeof GenerateImageRequest>) =>
       request<RunAccepted>('POST', '/api/media/images/generate', b),
     generateVideo: (b: In<typeof GenerateVideoRequest>) =>
@@ -165,6 +169,10 @@ export const api = {
   },
 
   analytics: () => request<DashboardResponse>('GET', '/api/analytics'),
+  usage: {
+    higgsfield: () =>
+      request<Out<typeof HiggsfieldUsageResponse>>('GET', '/api/usage/higgsfield'),
+  },
   runs: {
     list: (personaId?: string) =>
       request<Out<typeof ListRunsResponse>>('GET', `/api/agents/runs${qs({ personaId })}`),

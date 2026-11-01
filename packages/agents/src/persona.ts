@@ -1,6 +1,6 @@
 import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
 import { generateJson, playbookContext, SAFETY_BLOCK } from '@pseudo/ai';
-import { PersonaIdentity, type ArchetypePlaybook } from '@pseudo/shared';
+import { PersonaIdentity, type ArchetypePlaybook, type PersonaBasics } from '@pseudo/shared';
 import { noProgress, type ProgressFn } from './types';
 
 /**
@@ -9,6 +9,7 @@ import { noProgress, type ProgressFn } from './types';
  */
 const State = Annotation.Root({
   description: Annotation<string>,
+  basics: Annotation<PersonaBasics | undefined>,
   instructions: Annotation<string | undefined>,
   existing: Annotation<PersonaIdentity | undefined>,
   playbook: Annotation<ArchetypePlaybook | undefined>,
@@ -19,6 +20,8 @@ const State = Annotation.Root({
 const SYSTEM = `You are the Persona Agent for PSEUDO, a creative studio where users LARP as a fictional alter ego.
 Create a vivid, internally consistent fictional identity for social media. The persona's face and body are the user's own
 (the user will appear in generated photos), so do not describe specific facial features.
+Everything the user states (in PERSONA_FACTS or their description) is true for this persona: never contradict it
+or swap it for something else. Only invent what they left open, and keep every field consistent with those facts.
 ${SAFETY_BLOCK}`;
 
 export function buildPersonaGraph(progress: ProgressFn = noProgress) {
@@ -27,8 +30,11 @@ export function buildPersonaGraph(progress: ProgressFn = noProgress) {
       await progress('draft', 'Drafting identity, backstory and voice');
       const prompt = [
         `User's description of the alter ego they want to become:\n"""${s.description}"""`,
+        s.basics && Object.keys(s.basics).length
+          ? `PERSONA_FACTS: ${JSON.stringify(s.basics)}`
+          : '',
         s.existing
-          ? `Existing identity (keep what is not asked to change):\n${JSON.stringify(s.existing)}`
+          ? `EXISTING_IDENTITY (keep what is not asked to change): ${JSON.stringify(s.existing)}`
           : '',
         s.instructions ? `Extra direction from the user: ${s.instructions}` : '',
         playbookContext(s.playbook),
@@ -45,8 +51,8 @@ export function buildPersonaGraph(progress: ProgressFn = noProgress) {
     })
     .addNode('review', async (s) => {
       await progress('review', 'Checking consistency and safety rules');
-      const id = s.identity!;
-      // Deterministic post-processing: handles must be clean, every bio flagged as not advice when finance-related.
+      // The user's own facts always win over whatever the model wrote; handles must be clean.
+      const id = { ...s.identity!, ...s.basics };
       const handle = id.handle
         .replace(/^@/, '')
         .replace(/[^a-zA-Z0-9._]/g, '')
@@ -62,6 +68,7 @@ export function buildPersonaGraph(progress: ProgressFn = noProgress) {
 export async function runPersonaAgent(
   input: {
     description: string;
+    basics?: PersonaBasics;
     instructions?: string;
     existing?: PersonaIdentity;
     playbook?: ArchetypePlaybook;

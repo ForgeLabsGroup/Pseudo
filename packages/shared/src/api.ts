@@ -8,7 +8,7 @@ import { AgentEvent, AgentRun } from './agents';
 import { ContentBody, ContentItem } from './content';
 import { ContentStatus, ContentType, MediaCategory, Platform, PublishMode } from './enums';
 import { MediaAsset } from './media';
-import { Persona, PersonaIdentity, PersonaVersion } from './persona';
+import { Persona, PersonaBasics, PersonaIdentity, PersonaVersion } from './persona';
 import { PublishingJob, PublishingRecord, SocialAccount } from './publishing';
 import { Archetype, ArchetypePlaybook } from './research';
 
@@ -26,6 +26,8 @@ export const CreatePersonaRequest = z.object({
   description: z.string().min(10).max(2000),
   /** Optional overrides the user typed manually. */
   name: z.string().optional(),
+  /** Name, age, location... the user typed. These win over anything the Persona Agent invents. */
+  basics: PersonaBasics.optional(),
   /** Archetype whose research playbook steers this persona (trader, ecommerce, fitness_coach...). */
   archetypeId: z.uuid().optional(),
   /** If true (default), the Persona Agent runs immediately. */
@@ -43,6 +45,11 @@ export const UpdatePersonaRequest = z.object({
   status: z.enum(['draft', 'active', 'archived']).optional(),
 });
 export const UpdatePersonaResponse = z.object({ persona: Persona });
+
+/**
+ * DELETE /api/personas/:id -> 204 (no body). Also deletes the persona's versions, content and
+ * media assets (including reference selfies) and their files in Storage.
+ */
 
 /** Re-run the Persona Agent, optionally with extra direction. */
 export const GeneratePersonaRequest = z.object({ instructions: z.string().optional() });
@@ -110,6 +117,11 @@ export const UpdateMediaRequest = z.object({
   isFavorite: z.boolean().optional(),
   category: MediaCategory.optional(),
 });
+
+/**
+ * DELETE /api/media/:id -> 204 (no body). Removes the file from Storage; a persona using it as
+ * avatar falls back to none, and it is detached from any content.
+ */
 
 /**
  * POST /api/personas/:id/character -> RunAccepted. Trains the user's likeness at the configured

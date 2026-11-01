@@ -24,6 +24,12 @@ export async function uploadMedia(
   return { path, url: storage.getPublicUrl(path).data.publicUrl };
 }
 
+export async function removeMedia(paths: string[]) {
+  if (!paths.length) return;
+  const { error } = await getAdminClient().storage.from(MEDIA_BUCKET).remove(paths);
+  if (error) throw new Error(`Storage remove failed: ${error.message}`);
+}
+
 export async function downloadMedia(path: string): Promise<Buffer> {
   const { data, error } = await getAdminClient().storage.from(MEDIA_BUCKET).download(path);
   if (error || !data) throw new Error(`Storage download failed: ${error?.message}`);

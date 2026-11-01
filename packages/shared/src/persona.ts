@@ -44,6 +44,13 @@ export const PersonaIdentity = z.object({
 });
 export type PersonaIdentity = z.infer<typeof PersonaIdentity>;
 
+const fact = z.string().trim().min(1).max(100);
+/** Facts the user typed when creating a persona. The Persona Agent keeps them verbatim. */
+export const PersonaBasics = z
+  .object({ name: fact, handle: fact, ageRange: fact, location: fact, occupation: fact })
+  .partial();
+export type PersonaBasics = z.infer<typeof PersonaBasics>;
+
 /** A trained likeness of the user at an image/video provider (e.g. Higgsfield Soul ID). */
 export const CharacterRef = z.object({
   id: z.string().nullable(),

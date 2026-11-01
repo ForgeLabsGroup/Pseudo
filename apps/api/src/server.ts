@@ -10,11 +10,17 @@ import mediaRoutes from './routes/media';
 import miscRoutes from './routes/misc';
 import personaRoutes from './routes/personas';
 import publishingRoutes from './routes/publishing';
+import usageRoutes from './routes/usage';
 import { startPublishingWorker } from './jobs/publisher';
 
 export async function buildServer() {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
-  await app.register(cors, { origin: env.corsOrigins, credentials: true });
+  // @fastify/cors v11 only allows GET,HEAD,POST by default; edits and deletes need the rest.
+  await app.register(cors, {
+    origin: env.corsOrigins,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
+  });
   await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024, files: 1 } });
 
   app.setErrorHandler((err, req, reply) => {
@@ -35,6 +41,7 @@ export async function buildServer() {
   await app.register(mediaRoutes);
   await app.register(publishingRoutes);
   await app.register(miscRoutes);
+  await app.register(usageRoutes);
   return app;
 }
 

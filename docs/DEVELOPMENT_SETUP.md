@@ -4,7 +4,7 @@
 2. **Supabase** (one person does this, shares keys):
    - Create project → SQL Editor → paste `supabase/migrations/20261101000000_init.sql` → Run.
      (or `npx supabase link --project-ref <ref> && npx supabase db push`)
-   - Also run `supabase/migrations/20261101010000_character_refs.sql`, `20261101020000_research.sql` and `20261101030000_research_storage.sql` (in order; the last creates the private `research-videos` bucket).
+   - Also run `supabase/migrations/20261101010000_character_refs.sql`, `20261101020000_research.sql`, `20261101030000_research_storage.sql` and `20261101040000_provider_usage.sql` (in order; `research_storage` creates the private `research-videos` bucket).
    - CLI route (preferred): `pnpm exec supabase login`, then `pnpm db:link --project-ref <ref>` (ref = subdomain of your project URL), `pnpm db:status`, `pnpm db:push`.
    - Authentication → Sign In / Providers → Email: turn **off** "Confirm email" (demo).
 3. `cp .env.example .env` and fill Supabase keys. `cp apps/web/.env.example apps/web/.env.local` and fill.

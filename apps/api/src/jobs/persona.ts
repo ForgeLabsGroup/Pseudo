@@ -1,6 +1,6 @@
 import { runPersonaAgent } from '@pseudo/agents';
 import { getAdminClient } from '@pseudo/database';
-import type { PersonaIdentity } from '@pseudo/shared';
+import type { PersonaBasics, PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { ensurePlaybook } from './research';
@@ -11,6 +11,7 @@ export async function personaJob(
   personaId: string,
   input: {
     description: string;
+    basics?: PersonaBasics;
     instructions?: string;
     existing?: PersonaIdentity;
     archetypeId?: string | null;
