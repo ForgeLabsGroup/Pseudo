@@ -1,6 +1,7 @@
-import { aiConfig, generateVideoClip, generateVoice, higgsfieldClipSeconds } from '@pseudo/ai';
+import { aiConfig, generateMusic, generateVideoClip, generateVoice, higgsfieldClipSeconds } from '@pseudo/ai';
+import { shotAngle } from '@pseudo/agents';
 import { getAdminClient } from '@pseudo/database';
-import { ShortVideoBody, type PersonaIdentity } from '@pseudo/shared';
+import { isBroll, ShortVideoBody, type PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
 import type { RunCtx } from '../lib/runs';
 import { uploadMedia } from '../lib/storage';
@@ -54,7 +55,7 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     .from('content_media')
     .delete()
     .eq('content_id', input.contentId)
-    .in('role', ['scene', 'scene_clip', 'voiceover']);
+    .in('role', ['scene', 'scene_clip', 'voiceover', 'music']);
 
   const playbook = await personaPlaybook(ctx.userId, input.personaId);
 
@@ -63,12 +64,15 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
       'scene',
       `Scene ${i + 1}/${body.scenes.length}: ${scene.visual} (images take ~1-2 min)`,
     );
+    const broll = isBroll(scene);
     const still = await generatePersonaImage(ctx, {
       personaId: input.personaId,
       identity: input.identity,
-      category: 'lifestyle',
-      scene: scene.visual,
-      useReference: true,
+      category: broll ? 'other' : 'lifestyle',
+      scene: broll ? scene.visual : `${scene.visual}. Camera: ${scene.shot ?? shotAngle(i)}`,
+      subject: broll ? 'broll' : 'persona',
+      variant: i,
+      useReference: !broll,
       aspectRatio: '9:16',
       playbook,
       contentId: input.contentId,
@@ -81,6 +85,7 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
         imageUrl: still.url,
         prompt: scene.visual,
         durationSec: scene.durationSec,
+        subject: broll ? 'broll' : 'persona',
       });
     let clip;
     if (aiConfig().video === 'higgsfield') {
@@ -112,7 +117,7 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
           storage_path: path,
           url,
           mime_type: clip.mimeType,
-          duration_sec: scene.durationSec,
+          duration_sec: higgsfieldClipSeconds(scene.durationSec),
           prompt: scene.visual,
           provider: clip.provider,
           agent_run_id: ctx.runId,
@@ -192,14 +197,54 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     }
   }
 
+  // Background music (ElevenLabs Music, or a synthesised loop with no keys) so the video is never silent.
+  await ctx.progress('music', 'Adding background music');
+  const totalSec = body.scenes.reduce((sum, s) => sum + s.durationSec, 0);
+  const music = await generateMusic({
+    durationSec: totalSec,
+    style: input.identity.visualIdentity.aesthetic,
+  });
+  const musicUp = await uploadMedia(ctx.userId, input.personaId, music.data, music.mimeType);
+  const { data: musicAsset, error: e3 } = await admin
+    .from('media_assets')
+    .insert({
+      user_id: ctx.userId,
+      persona_id: input.personaId,
+      kind: 'audio',
+      source: 'ai_generated',
+      category: 'other',
+      storage_path: musicUp.path,
+      url: musicUp.url,
+      mime_type: music.mimeType,
+      duration_sec: music.durationSec,
+      prompt: 'background music',
+      provider: music.provider,
+      agent_run_id: ctx.runId,
+    })
+    .select('id')
+    .single();
+  if (e3) throw new Error(e3.message);
+  const musicAssetId: string = musicAsset.id;
+  await admin.from('content_media').insert({
+    content_id: input.contentId,
+    asset_id: musicAssetId,
+    user_id: ctx.userId,
+    role: 'music',
+    position: 0,
+  });
+
   await admin
     .from('content_items')
-    .update({ body: { ...body, voiceoverAssetId }, status: 'awaiting_approval', error: null })
+    .update({
+      body: { ...body, voiceoverAssetId, musicAssetId },
+      status: 'awaiting_approval',
+      error: null,
+    })
     .eq('id', input.contentId);
   publish(ctx.userId, {
     type: 'content.updated',
     contentId: input.contentId,
     status: 'awaiting_approval',
   });
-  return { output: { contentId: input.contentId, voiceoverAssetId } };
+  return { output: { contentId: input.contentId, voiceoverAssetId, musicAssetId } };
 }

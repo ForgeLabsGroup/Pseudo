@@ -18,7 +18,6 @@ export async function mockImage(args: GenerateImageArgs): Promise<GeneratedImage
 <rect width="100%" height="100%" fill="url(#g)"/>
 <text x="50%" y="46%" fill="#fff" font-family="sans-serif" font-size="${Math.round(w / 18)}" text-anchor="middle" opacity="0.9">MOCK IMAGE</text>
 <text x="50%" y="54%" fill="#fff" font-family="sans-serif" font-size="${Math.round(w / 40)}" text-anchor="middle" opacity="0.75">${label}</text>
-<text x="4%" y="96%" fill="#fff" font-family="sans-serif" font-size="${Math.round(w / 45)}" opacity="0.8">AI-generated · PSEUDO</text>
 </svg>`;
   return { data: Buffer.from(svg), mimeType: 'image/svg+xml', provider: 'mock', model: 'mock' };
 }

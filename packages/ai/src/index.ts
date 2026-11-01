@@ -6,3 +6,4 @@ export * from './video';
 export { createCharacter, getCharacter, higgsfieldClipSeconds, waitFor } from './higgsfield';
 export * from './prompts';
 export { ALEX_STERLING } from './mock/alex';
+export { generateMusic, type GeneratedMusic } from './music';

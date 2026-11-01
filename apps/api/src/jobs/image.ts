@@ -1,4 +1,4 @@
-import { buildImagePrompt } from '@pseudo/agents';
+import { buildBrollPrompt, buildImagePrompt } from '@pseudo/agents';
 import { aiConfig, generateImage, maxReferenceImages, type ReferenceImage } from '@pseudo/ai';
 import { getAdminClient, toMediaAsset } from '@pseudo/database';
 import type { ArchetypePlaybook, MediaCategory, PersonaIdentity } from '@pseudo/shared';
@@ -22,6 +22,10 @@ export interface ImageJobInput {
   contentId?: string;
   role?: 'primary' | 'scene';
   position?: number;
+  /** Index within a batch/video: rotates which selfies lead, so each image draws on different face angles. */
+  variant?: number;
+  /** 'broll' = detail shot with no people: no selfies, no likeness. */
+  subject?: 'persona' | 'broll';
 }
 
 /** Workflow C: Visual Agent prompt -> image provider (with user's selfies) -> Storage -> media_assets. */
@@ -29,11 +33,14 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
   const admin = getAdminClient();
   await ctx.progress('prompt', `Visual Agent composing a ${input.category} shot`);
   const playbook = input.playbook ?? (await personaPlaybook(ctx.userId, input.personaId));
-  const { prompt } = await buildImagePrompt(input.identity, input.category, input.scene, playbook);
+  const broll = input.subject === 'broll';
+  const { prompt } = broll
+    ? await buildBrollPrompt(input.identity, input.scene ?? 'a detail shot from the persona\'s day', playbook)
+    : await buildImagePrompt(input.identity, input.category, input.scene, playbook);
 
   let references: ReferenceImage[] = [];
   let referenceUrls: string[] = [];
-  if (input.useReference) {
+  if (input.useReference && !broll) {
     const { data: refs } = await admin
       .from('media_assets')
       .select('storage_path, mime_type, url')
@@ -41,9 +48,12 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
       .eq('source', 'reference_upload')
       .order('created_at', { ascending: false })
       .limit(maxReferenceImages());
-    referenceUrls = (refs ?? []).map((r) => r.url as string);
+    const rows = refs ?? [];
+    const shift = rows.length ? (input.variant ?? 0) % rows.length : 0;
+    const rotated = [...rows.slice(shift), ...rows.slice(0, shift)];
+    referenceUrls = rotated.map((r) => r.url as string);
     references = await Promise.all(
-      (refs ?? []).map(async (r) => ({
+      rotated.map(async (r) => ({
         data: await downloadMedia(r.storage_path),
         mimeType: r.mime_type,
       })),
@@ -56,7 +66,7 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
       ? `Generating image with ${references.length} reference photo(s)`
       : 'Generating image',
   );
-  const characterId = await readyCharacterId(input.personaId);
+  const characterId = broll ? undefined : await readyCharacterId(input.personaId);
   const generate = () =>
     generateImage({
       prompt,

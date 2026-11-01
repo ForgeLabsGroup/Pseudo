@@ -15,6 +15,7 @@ export async function generateVideoClip(input: {
   imageUrl: string;
   prompt: string;
   durationSec: number;
+  subject?: 'persona' | 'broll';
 }): Promise<GeneratedClip | null> {
   if (aiConfig().video !== 'higgsfield') return null;
   const { url, mimeType } = await higgsfieldImageToVideo(input);

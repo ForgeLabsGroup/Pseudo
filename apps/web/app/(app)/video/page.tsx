@@ -233,6 +233,7 @@ function VideoRow({
   const built = item.media.some((m) => m.role === 'scene');
   const clips = item.media.filter((m) => m.role === 'scene_clip').length;
   const hasVoice = item.media.some((m) => m.role === 'voiceover');
+  const hasMusic = item.media.some((m) => m.role === 'music');
   const seconds = body.scenes.reduce((s, sc) => s + sc.durationSec, 0);
   const building = item.status === 'generating' || build.isPending;
 
@@ -272,9 +273,16 @@ function VideoRow({
                   {' '}
                   · {clips > 0 ? `${clips} moving clips` : 'animated stills'}
                   {hasVoice ? ' · voiceover' : ' · no voiceover'}
+                  {hasMusic ? ' · music' : ''}
                 </>
               )}
             </p>
+            {body.idea && (
+              <p className="mt-1 text-sm text-fg">
+                <span className="text-muted">The point: </span>
+                {body.idea}
+              </p>
+            )}
           </div>
 
           <ol className="space-y-1.5 text-sm">

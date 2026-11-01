@@ -9,9 +9,21 @@
  */
 import { config, higgsfield, type V2Response } from '@higgsfield/client/v2';
 import type { GenerateImageArgs, GeneratedImage } from './image';
+import { stripSlopWords } from './prompts';
 
-/** Kling 3.0 Turbo image-to-video (speed tier, 720p). Billed per second, so keep clips short. */
-export const KLING_I2V_MODEL = 'kling-video/v3.0-turbo/image-to-video';
+/**
+ * Kling 3.0 image-to-video tiers (billed per second, so keep clips short). Pick with HIGGSFIELD_KLING_TIER:
+ *   std (default) = quality baseline, turbo = faster/cheaper 720p speed tier, pro = highest quality (check price first).
+ */
+const KLING_I2V_MODELS = {
+  turbo: 'kling-video/v3.0-turbo/image-to-video',
+  std: 'kling-video/v3.0/std/image-to-video',
+  pro: 'kling-video/v3.0/pro/image-to-video',
+} as const;
+const klingTier = (): keyof typeof KLING_I2V_MODELS => {
+  const t = process.env.HIGGSFIELD_KLING_TIER;
+  return t === 'turbo' || t === 'pro' ? t : 'std';
+};
 export const KLING_T2V_MODEL = 'kling-video/v3.0/std/text-to-video';
 /** Marketing Studio Image: cheap (~$0.011/img). With image_urls it edits the selfie (e.g. new background). */
 export const MARKETING_IMAGE_MODEL = 'marketing-studio/image';
@@ -160,19 +172,31 @@ export async function higgsfieldImage(args: GenerateImageArgs): Promise<Generate
   return { data: Buffer.from(await res.arrayBuffer()), mimeType, provider: 'higgsfield', model };
 }
 
-/** Animate a still (public URL) into a short clip with Kling 3.0 Turbo. Returns a downloadable video URL. */
+/**
+ * Image-to-video prompts describe MOTION, not the still (the image already defines the look).
+ * Keeps the face/clothes stable and the movement small and phone-like, which reads as real footage.
+ */
+export function buildMotionPrompt(sceneVisual: string, subject: 'persona' | 'broll' = 'persona'): string {
+  if (subject === 'broll')
+    return `${stripSlopWords(sceneVisual)}. Real unedited phone footage of this detail shot: slow handheld push-in with slight natural sway, small real-world motion (screen candles ticking, steam, light shifting, reflections). No people appear. No morphing, warping, flicker, text or watermarks. Natural light, realistic physics.`;
+  return `${stripSlopWords(sceneVisual)}. Real unedited phone footage: the person moves naturally and subtly (breathing, blinking, a small head turn, shifting weight, relaxed hand movement), slight handheld camera sway, gentle ambient motion in the background (wind in hair and clothes, water, passing people or cars). Keep the exact same face, body and outfit in every frame. No morphing, warping, flicker, text or watermarks. Natural light, realistic physics.`;
+}
+
+/** Animate a still (public URL) into a short clip with Kling 3.0. Returns a downloadable video URL. */
 export async function higgsfieldImageToVideo(input: {
   imageUrl: string;
   prompt: string;
   durationSec: number;
+  subject?: 'persona' | 'broll';
 }): Promise<{ url: string; mimeType: string }> {
   const duration = higgsfieldClipSeconds(input.durationSec);
-  // Turbo has no sound field; we add our own voice/music.
-  const { url } = await subscribeVideo(KLING_I2V_MODEL, {
+  const tier = klingTier();
+  const { url } = await subscribeVideo(KLING_I2V_MODELS[tier], {
     image_url: input.imageUrl,
-    prompt: input.prompt,
+    prompt: buildMotionPrompt(input.prompt, input.subject),
     duration,
-    resolution: '720p',
+    // We add our own voice/music, so don't pay for generated audio (the turbo tier has no sound option).
+    ...(tier === 'turbo' ? {} : { sound: 'off' }),
   });
   return { url, mimeType: 'video/mp4' };
 }

@@ -1,4 +1,4 @@
-import { generateJson, personaContext, SAFETY_BLOCK } from '@pseudo/ai';
+import { generateJson, personaContext, SAFETY_BLOCK, stripSlopWords } from '@pseudo/ai';
 import type { ArchetypePlaybook, MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { z } from 'zod';
 
@@ -20,15 +20,25 @@ const CATEGORY_HINTS: Record<MediaCategory, string> = {
  * Why images look like "AI slop": cinematic/golden-hour/bokeh/HDR wording, flawless skin, perfect symmetry,
  * studio-clean compositions. Real social photos are candid phone shots with ordinary light and small flaws.
  */
-const SLOP_WORDS =
-  /\b(cinematic|masterpiece|hyper-?realistic|ultra-?realistic|photo-?realistic|ultra[- ]detailed|highly detailed|8k|4k|hdr|bokeh|volumetric|dramatic lighting|studio lighting|epic|stunning|breathtaking|award[- ]winning|trending on \w+|unreal engine|octane|render(ed)?|shallow depth of field|golden[- ]hour glow|warm tones|35mm)\b[,.]?\s*/gi;
-
 /** Appended to every image prompt, after the LLM's text, so it holds regardless of provider. */
 export const REALISM_SUFFIX =
   'Unedited candid photo taken on a smartphone, natural available light, true-to-life colours. Real skin with visible pores, fine lines and uneven tone, no airbrushing or beauty filter, natural asymmetry. Slightly imperfect framing, mild noise in the shadows, nothing staged or over-sharpened. Not an illustration, not a render.';
 
-export const cleanImagePrompt = (prompt: string) =>
-  `${prompt.replace(SLOP_WORDS, '').replace(/\s{2,}/g, ' ').replace(/[\s,]+$/, '').trim()}. ${REALISM_SUFFIX}`;
+export const cleanImagePrompt = (prompt: string) => `${stripSlopWords(prompt)}. ${REALISM_SUFFIX}`;
+
+/**
+ * Camera angles cycled across a set of images (video scenes, multi-image batches) so one face isn't
+ * the same front-on crop every time. All keep the face visible so the user's likeness carries over.
+ */
+export const SHOT_ANGLES = [
+  'close-up, face fills the frame, looking at the camera',
+  'three-quarter angle, looking slightly off camera',
+  'side profile, looking into the distance',
+  'wide shot showing the whole body and the surroundings, face still visible',
+  'low-angle medium shot, looking down toward the camera',
+  'candid medium shot, glancing back over the shoulder with the face turned toward the camera',
+];
+export const shotAngle = (i: number) => SHOT_ANGLES[((i % SHOT_ANGLES.length) + SHOT_ANGLES.length) % SHOT_ANGLES.length]!;
 
 const ImagePromptOut = z.object({ prompt: z.string(), altText: z.string() });
 
@@ -52,4 +62,27 @@ Never use: cinematic, masterpiece, 8k, ultra-detailed, hyperrealistic, stunning,
     schema: ImagePromptOut,
   });
   return { ...res.data, prompt: cleanImagePrompt(res.data.prompt) };
+}
+
+/** Fixed tail for detail shots: same phone-photo realism, explicitly no people, no fake numbers. */
+export const BROLL_SUFFIX =
+  'Unedited smartphone photo, natural available light, true-to-life colours, mild noise in the shadows, nothing staged. No people in frame. Any screen shows generic candlestick price charts only: no account balances, profit figures, dollar amounts, percentages or brand names. Not an illustration, not a render.';
+
+/**
+ * B-roll: a detail/insert shot with NO people (trading screens, car keys, espresso, gym chalk) that cuts
+ * between the persona's on-camera scenes, so the video shows the world, not just a face.
+ */
+export async function buildBrollPrompt(
+  identity: PersonaIdentity,
+  scene: string,
+  playbook?: ArchetypePlaybook | null,
+) {
+  const res = await generateJson({
+    task: 'image_prompt',
+    system: `You are the Visual Agent for PSEUDO. Write ONE image-generation prompt (max 50 words) for a B-roll detail shot with NO people in it, that looks like a real phone photo: the exact object or screen, where it is, the real light, one small mundane detail. If screens are involved, they show candlestick price charts only, never balances, profits or dollar amounts. No logos or readable brand names.
+Never use: cinematic, masterpiece, 8k, ultra-detailed, hyperrealistic, stunning, bokeh, HDR, volumetric, dramatic lighting.\n${SAFETY_BLOCK}`,
+    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nB-roll shot: ${scene}`,
+    schema: ImagePromptOut,
+  });
+  return { ...res.data, prompt: `${stripSlopWords(res.data.prompt)}. ${BROLL_SUFFIX}` };
 }
