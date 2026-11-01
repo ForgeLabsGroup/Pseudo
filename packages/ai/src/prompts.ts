@@ -36,9 +36,11 @@ export function playbookContext(p: ArchetypePlaybook | null | undefined): string
     `Video structures: ${p.videoStructures.map((v) => `${v.name} [${v.beats.join(' > ')}]`).join(' | ')}`,
     `Recurring topics: ${p.recurringTopics.join(', ')}`,
     `Tone: ${p.toneAndVoice.description}; vocabulary: ${p.toneAndVoice.vocabulary.join(', ')}; avoid: ${p.toneAndVoice.avoid.join(', ')}`,
-    `X post patterns: ${p.xPostPatterns.join(' | ')}`,
+    p.xPostPatterns.length ? `X post patterns: ${p.xPostPatterns.join(' | ')}` : '',
     `Visual style: settings ${p.visualStyle.settings.join(', ')}; wardrobe ${p.visualStyle.wardrobe}; lighting ${p.visualStyle.lighting}; camera ${p.visualStyle.camera}; editing ${p.visualStyle.editing}`,
     `Do: ${p.doList.join('; ')}`,
-    `Don't: ${p.dontList.join('; ')}`,
-  ].join('\n');
+    `Don't (must follow): ${p.dontList.join('; ')}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
 }

@@ -82,7 +82,7 @@ function mockPersona(prompt: string): PersonaIdentity {
       palette: ['#111111', '#E8C27A', '#F4F1EA'],
       recurringSettings: [`around ${location}`, 'workspace', 'morning routine'],
       wardrobe: 'Fitted neutrals, one statement accessory',
-      photographyStyle: 'Natural light, 35mm, shallow depth of field',
+      photographyStyle: 'Candid phone photos, natural available light',
     },
     socialBios: {
       instagram: `${occupation} · ${location}\nProcess over flex.`,
@@ -122,8 +122,8 @@ export async function mockGenerate(task: string, prompt: string): Promise<unknow
       const scene = /^Scene: (.+)$/m.exec(prompt)?.[1];
       const subject = must ?? 'a confident man in his late 20s in a linen shirt on a Brickell balcony';
       return {
-        prompt: `Photorealistic, cinematic 35mm photo, ${subject}${scene ? `, ${scene}` : ''}, Miami, golden hour, warm tones, shallow depth of field`,
-        altText: scene ?? must ?? 'Alex on a Miami balcony at golden hour',
+        prompt: `${subject}${scene ? `, ${scene}` : ''}, Miami, late afternoon sun`,
+        altText: scene ?? must ?? 'Alex on a Miami balcony in the afternoon',
       };
     }
     case 'research': {

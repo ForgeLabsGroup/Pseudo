@@ -44,3 +44,26 @@ export async function trackHiggsfield<T>(
     throw err;
   }
 }
+
+/**
+ * Like trackHiggsfield, for a job resumed after a restart: the request was already recorded (and
+ * billed) before the restart, so settle that pending row instead of adding a second one.
+ */
+export async function settleRunUsage<T>(ctx: RunCtx, fn: () => Promise<T>): Promise<T> {
+  const finish = async (status: 'succeeded' | 'failed', message: string | null) => {
+    await getAdminClient()
+      .from('provider_usage')
+      .update({ status, error: message, finished_at: new Date().toISOString() })
+      .eq('agent_run_id', ctx.runId)
+      .eq('status', 'pending');
+    publish(ctx.userId, { type: 'usage.updated', provider: 'higgsfield' });
+  };
+  try {
+    const result = await fn();
+    await finish('succeeded', null);
+    return result;
+  } catch (err) {
+    await finish('failed', (err as Error).message);
+    throw err;
+  }
+}

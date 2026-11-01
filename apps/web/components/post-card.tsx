@@ -2,6 +2,7 @@
 import type { ContentItem, Persona } from '@pseudo/shared';
 import { Bookmark, Heart, MessageCircle, Music2, Repeat2, Send, Share } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { Lightbox } from '@/components/lightbox';
 import { PersonaAvatar } from '@/components/persona-avatar';
 import { AiBadge, PlatformBadge, StatusBadge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -49,6 +50,7 @@ export function PostCard({
 }
 
 function PostBody({ item, who }: { item: ContentItem; who: Who }) {
+  const [viewing, setViewing] = useState<number | null>(null);
   const body = item.body;
   if (!body) {
     if (item.status === 'failed')
@@ -67,9 +69,23 @@ function PostBody({ item, who }: { item: ContentItem; who: Who }) {
           <div className="relative aspect-square bg-surface-2">
             {image ? (
               <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.url} alt={body.altText} className="h-full w-full object-cover" />
+                <button
+                  onClick={() => setViewing(0)}
+                  aria-label="View photo"
+                  className="h-full w-full cursor-zoom-in"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image.url} alt={body.altText} className="h-full w-full object-cover" />
+                </button>
                 <AiBadge className="absolute right-2 top-2" />
+                <Lightbox
+                  images={[
+                    { url: image.url, alt: body.altText, aiGenerated: true, caption: body.altText },
+                  ]}
+                  index={viewing}
+                  onIndexChange={setViewing}
+                  onClose={() => setViewing(null)}
+                />
               </>
             ) : isRecent(item.updatedAt) ? (
               <div className="flex h-full items-center justify-center p-6 text-center">

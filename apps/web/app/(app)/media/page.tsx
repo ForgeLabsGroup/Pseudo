@@ -5,6 +5,7 @@ import { Check, ExternalLink, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ErrorText } from '@/components/error-text';
+import { Lightbox, type LightboxImage } from '@/components/lightbox';
 import { EmptyState, PageHeader } from '@/components/page-header';
 import { DeleteMediaButton } from '@/components/persona-media';
 import { AiBadge, Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ export default function MediaPage() {
   const [kind, setKind] = useState<Kind>('');
   const [source, setSource] = useState<Source>('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [viewing, setViewing] = useState<number | null>(null);
 
   const personas = useQuery({ queryKey: ['personas'], queryFn: api.personas.list });
   const query = { personaId: personaId || undefined, kind: kind || undefined };
@@ -37,6 +39,23 @@ export default function MediaPage() {
       (!favoritesOnly || a.isFavorite),
   );
   const filtered = !!personaId || !!kind || source !== 'all' || favoritesOnly;
+  const photos = assets.filter((a) => a.kind === 'image');
+  const lightboxImages: LightboxImage[] = photos.map((a) => {
+    const persona = a.personaId ? personaById.get(a.personaId) : undefined;
+    return {
+      url: a.url,
+      alt: a.prompt ?? undefined,
+      aiGenerated: a.aiGenerated,
+      caption: (
+        <>
+          {a.prompt && <p className="mx-auto mb-1 max-w-2xl text-white/90">{a.prompt}</p>}
+          <p className="font-mono text-xs text-white/50">
+            {persona?.name ?? 'No persona'} · {a.category} · {timeAgo(a.createdAt)}
+          </p>
+        </>
+      ),
+    };
+  });
 
   return (
     <>
@@ -145,14 +164,29 @@ export default function MediaPage() {
             key={a.id}
             asset={a}
             persona={a.personaId ? personaById.get(a.personaId) : undefined}
+            onOpen={() => setViewing(photos.indexOf(a))}
           />
         ))}
       </div>
+      <Lightbox
+        images={lightboxImages}
+        index={viewing}
+        onIndexChange={setViewing}
+        onClose={() => setViewing(null)}
+      />
     </>
   );
 }
 
-function Tile({ asset, persona }: { asset: MediaAsset; persona: Persona | undefined }) {
+function Tile({
+  asset,
+  persona,
+  onOpen,
+}: {
+  asset: MediaAsset;
+  persona: Persona | undefined;
+  onOpen: () => void;
+}) {
   const qc = useQueryClient();
   const favorite = useMutation({
     mutationFn: () => api.media.update(asset.id, { isFavorite: !asset.isFavorite }),
@@ -170,8 +204,10 @@ function Tile({ asset, persona }: { asset: MediaAsset; persona: Persona | undefi
     <figure className="min-w-0">
       <div className="group relative aspect-square overflow-hidden border border-border bg-surface-2">
         {asset.kind === 'image' && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={asset.url} alt={asset.prompt ?? ''} className="h-full w-full object-cover" />
+          <button onClick={onOpen} aria-label="View photo" className="h-full w-full cursor-zoom-in">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset.url} alt={asset.prompt ?? ''} className="h-full w-full object-cover" />
+          </button>
         )}
         {asset.kind === 'video' && (
           <video src={asset.url} controls className="h-full w-full object-cover" />

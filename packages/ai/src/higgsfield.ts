@@ -10,8 +10,8 @@
 import { config, higgsfield, type V2Response } from '@higgsfield/client/v2';
 import type { GenerateImageArgs, GeneratedImage } from './image';
 
-/** Kling 3.0 (std tier) image-to-video. Billed per second, so keep clips short. */
-export const KLING_I2V_MODEL = 'kling-video/v3.0/std/image-to-video';
+/** Kling 3.0 Turbo image-to-video (speed tier, 720p). Billed per second, so keep clips short. */
+export const KLING_I2V_MODEL = 'kling-video/v3.0-turbo/image-to-video';
 export const KLING_T2V_MODEL = 'kling-video/v3.0/std/text-to-video';
 /** Marketing Studio Image: cheap (~$0.011/img). With image_urls it edits the selfie (e.g. new background). */
 export const MARKETING_IMAGE_MODEL = 'marketing-studio/image';
@@ -142,13 +142,14 @@ export async function higgsfieldImage(args: GenerateImageArgs): Promise<Generate
       aspect_ratio,
       resolution: '720p',
       batch_size: 1,
+      enhance_prompt: false, // our prompt is already written for realism; Soul's enhancer adds a stylised look
     };
   } else {
     model = MARKETING_IMAGE_MODEL;
     const refs = (args.referenceUrls ?? []).slice(0, 2);
     // Edit mode treats the prompt as an instruction on the photo, so say explicitly to keep the face.
     const prompt = refs.length
-      ? `Edit this photo of a real person. Keep the exact same person: identical face, skin tone, hair and body. Change only the setting, outfit and lighting to: ${args.prompt}. Photorealistic, natural skin, no extra people.`
+      ? `Edit this photo of a real person. Keep the exact same person: identical face, skin tone, hair and body. Change only the setting, outfit and lighting to: ${args.prompt}. It must look like an unedited phone photo: natural skin texture with pores and fine lines, no airbrushing, no extra people.`
       : args.prompt;
     input = { prompt, aspect_ratio, resolution: '1k', ...(refs.length ? { image_urls: refs } : {}) };
   }
@@ -159,18 +160,19 @@ export async function higgsfieldImage(args: GenerateImageArgs): Promise<Generate
   return { data: Buffer.from(await res.arrayBuffer()), mimeType, provider: 'higgsfield', model };
 }
 
-/** Animate a still (public URL) into a short clip with Kling 3.0. Returns a downloadable video URL. */
+/** Animate a still (public URL) into a short clip with Kling 3.0 Turbo. Returns a downloadable video URL. */
 export async function higgsfieldImageToVideo(input: {
   imageUrl: string;
   prompt: string;
   durationSec: number;
 }): Promise<{ url: string; mimeType: string }> {
   const duration = higgsfieldClipSeconds(input.durationSec);
+  // Turbo has no sound field; we add our own voice/music.
   const { url } = await subscribeVideo(KLING_I2V_MODEL, {
     image_url: input.imageUrl,
     prompt: input.prompt,
     duration,
-    sound: 'off', // we add our own voice/music; avoids paying for generated audio
+    resolution: '720p',
   });
   return { url, mimeType: 'video/mp4' };
 }
