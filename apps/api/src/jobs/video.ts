@@ -1,4 +1,4 @@
-import { aiConfig, generateVideoClip, generateVoice } from '@pseudo/ai';
+import { aiConfig, generateVideoClip, generateVoice, higgsfieldClipSeconds } from '@pseudo/ai';
 import { getAdminClient } from '@pseudo/database';
 import { ShortVideoBody, type PersonaIdentity } from '@pseudo/shared';
 import { publish } from '../lib/bus';
@@ -55,8 +55,11 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
     .eq('content_id', input.contentId)
     .in('role', ['scene', 'scene_clip', 'voiceover']);
 
-  for (const [i, scene] of body.scenes.entries()) {
-    await ctx.progress('scene', `Scene ${i + 1}/${body.scenes.length}: ${scene.visual}`);
+  const doScene = async (i: number, scene: (typeof body.scenes)[number]) => {
+    await ctx.progress(
+      'scene',
+      `Scene ${i + 1}/${body.scenes.length}: ${scene.visual} (images take ~1-2 min)`,
+    );
     const still = await generatePersonaImage(ctx, {
       personaId: input.personaId,
       identity: input.identity,
@@ -68,21 +71,24 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
       role: 'scene',
       position: i,
     });
-    // Real motion: animate the still (Higgsfield). Mock mode returns null -> template animates the still.
+    // Real motion: animate the still (Higgsfield Kling). Mock mode returns null -> template animates the still.
     const animate = () =>
       generateVideoClip({
         imageUrl: still.url,
         prompt: scene.visual,
         durationSec: scene.durationSec,
       });
-    const clip =
-      aiConfig().video === 'higgsfield'
-        ? await trackHiggsfield(
-            ctx,
-            { operation: 'video', personaId: input.personaId, videoSeconds: scene.durationSec },
-            animate,
-          )
-        : await animate();
+    let clip;
+    if (aiConfig().video === 'higgsfield') {
+      await ctx.progress('animate', `Animating scene ${i + 1} (clips take ~1-3 min)`);
+      clip = await trackHiggsfield(
+        ctx,
+        { operation: 'video', personaId: input.personaId, videoSeconds: higgsfieldClipSeconds(scene.durationSec) },
+        animate,
+      );
+    } else {
+      clip = await animate();
+    }
     if (clip) {
       await ctx.progress('animate', `Animated scene ${i + 1}`);
       const { path, url } = await uploadMedia(
@@ -118,7 +124,24 @@ async function prepareVideo(ctx: RunCtx, input: VideoJobInput) {
         position: i,
       });
     }
-  }
+  };
+
+  // Scenes are independent: run a few at a time (Higgsfield jobs are slow, not CPU-bound).
+  const SCENE_CONCURRENCY = Number(process.env.VIDEO_SCENE_CONCURRENCY ?? 3);
+  const queue = body.scenes.map((scene, i) => ({ scene, i }));
+  const failures: unknown[] = [];
+  await Promise.all(
+    Array.from({ length: Math.min(SCENE_CONCURRENCY, queue.length) }, async () => {
+      for (let job = queue.shift(); job && failures.length === 0; job = queue.shift()) {
+        try {
+          await doScene(job.i, job.scene);
+        } catch (err) {
+          failures.push(err);
+        }
+      }
+    }),
+  );
+  if (failures.length) throw failures[0];
 
   let voiceoverAssetId: string | null = null;
   if (input.withVoiceover) {

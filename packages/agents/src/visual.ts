@@ -2,6 +2,20 @@ import { generateJson, personaContext, SAFETY_BLOCK } from '@pseudo/ai';
 import type { ArchetypePlaybook, MediaCategory, PersonaIdentity } from '@pseudo/shared';
 import { z } from 'zod';
 
+/** What each category MUST visibly show. Injected into the prompt so the category is honoured even if the LLM drifts. */
+const CATEGORY_HINTS: Record<MediaCategory, string> = {
+  reference: 'a plain, well-lit portrait with the face clearly visible',
+  profile: 'a clean headshot-style portrait with the face large and clearly visible',
+  lifestyle: 'a candid, aspirational daily-life moment in a luxury city setting',
+  car: 'the person posing next to or sitting in a luxury sports car (generic, unbranded), with the car large and clearly visible',
+  interior: 'the person inside a high-end modern penthouse interior with designer furniture and city views',
+  travel: 'the person at a scenic, recognisable travel destination',
+  yacht: 'the person on the deck of a luxury yacht at sea',
+  fitness: 'the person training in a premium gym or outdoors mid-workout',
+  workspace: 'the person at a sleek desk with multiple monitors in a modern office',
+  other: 'a polished lifestyle photo',
+};
+
 const ImagePromptOut = z.object({ prompt: z.string(), altText: z.string() });
 
 /**
@@ -17,7 +31,7 @@ export async function buildImagePrompt(
   const res = await generateJson({
     task: 'image_prompt',
     system: `You are the Visual Agent for PSEUDO. Write one photorealistic image-generation prompt (max 80 words) for a social media photo of the persona. Include setting, wardrobe, lighting, camera. Do not describe the face (the user's reference photo defines it). No logos, no readable brand names, no real people.\n${SAFETY_BLOCK}`,
-    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nCategory: ${category}\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
+    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nCategory: ${category}\nThe photo MUST clearly show: ${CATEGORY_HINTS[category]}.\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
     schema: ImagePromptOut,
   });
   return res.data;

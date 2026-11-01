@@ -116,12 +116,16 @@ export async function mockGenerate(task: string, prompt: string): Promise<unknow
           ][i],
         })),
       };
-    case 'image_prompt':
+    case 'image_prompt': {
+      // Honour the requested category/scene (the real model does), so mock mode isn't always a balcony.
+      const must = /MUST clearly show: ([^\n]+?)\.?(?:\n|$)/.exec(prompt)?.[1];
+      const scene = /^Scene: (.+)$/m.exec(prompt)?.[1];
+      const subject = must ?? 'a confident man in his late 20s in a linen shirt on a Brickell balcony';
       return {
-        prompt:
-          'Photorealistic, cinematic 35mm photo of a confident man in his late 20s in a linen shirt on a Brickell balcony at golden hour, Miami skyline, warm tones, shallow depth of field',
-        altText: 'Alex on a Miami balcony at golden hour',
+        prompt: `Photorealistic, cinematic 35mm photo, ${subject}${scene ? `, ${scene}` : ''}, Miami, golden hour, warm tones, shallow depth of field`,
+        altText: scene ?? must ?? 'Alex on a Miami balcony at golden hour',
       };
+    }
     case 'research': {
       const name = /ARCHETYPE: ([^—\n]+)/.exec(prompt)?.[1]?.trim() ?? 'Creator';
       return {

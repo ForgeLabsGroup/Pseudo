@@ -1,3 +1,4 @@
+import { normalizeImageUpload } from '../lib/image-convert';
 import {
   getAdminClient,
   PERSONA_SELECT,
@@ -161,10 +162,9 @@ export default async function personaRoutes(app: FastifyInstance) {
     must(db(await req.db.from('personas').select('id').eq('id', id).maybeSingle()), 'Persona');
     const file = await req.file();
     if (!file) throw new HttpError(400, 'Missing file');
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype))
-      throw new HttpError(400, 'Only JPEG, PNG or WebP');
-    const data = await file.toBuffer();
-    const { path, url } = await uploadMedia(req.user.id, id, data, file.mimetype);
+    const image = await normalizeImageUpload(await file.toBuffer(), file.mimetype).catch(() => null);
+    if (!image) throw new HttpError(400, 'Only JPEG, PNG, WebP or HEIC photos');
+    const { path, url } = await uploadMedia(req.user.id, id, image.data, image.mimeType);
     const row = db(
       await getAdminClient()
         .from('media_assets')
@@ -176,7 +176,7 @@ export default async function personaRoutes(app: FastifyInstance) {
           category: 'reference',
           storage_path: path,
           url,
-          mime_type: file.mimetype,
+          mime_type: image.mimeType,
         })
         .select('*')
         .single(),

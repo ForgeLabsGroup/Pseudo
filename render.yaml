@@ -36,11 +36,7 @@ services:
         sync: false
       - key: AI_VIDEO_PROVIDER
         value: mock
-      - key: HIGGSFIELD_API_KEY
-        sync: false
-      - key: HIGGSFIELD_API_SECRET
-        sync: false
-      - key: HIGGSFIELD_BASE_URL
+      - key: HF_CREDENTIALS
         sync: false
       - key: RESEARCH_SOURCE
         value: mock

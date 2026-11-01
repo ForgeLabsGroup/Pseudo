@@ -5,7 +5,9 @@ import { cn } from '@/lib/utils';
 
 export const SELFIE_MIN = 3;
 export const SELFIE_MAX = 20;
-const ACCEPT = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPT = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+// Some browsers send HEIC with an empty type, so also match the extension (server converts to JPEG).
+const isAccepted = (f: File) => ACCEPT.includes(f.type) || /\.(heic|heif)$/i.test(f.name);
 
 export type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 
@@ -27,7 +29,7 @@ export function SelfieDropzone({
 
   const add = (list: FileList | null) => {
     if (!list) return;
-    const picked = Array.from(list).filter((f) => ACCEPT.includes(f.type));
+    const picked = Array.from(list).filter(isAccepted);
     onChange([...files, ...picked].slice(0, SELFIE_MAX));
   };
 
@@ -55,11 +57,11 @@ export function SelfieDropzone({
           Drop {SELFIE_MIN}–{SELFIE_MAX} selfies or click to choose
         </span>
         <span className="text-xs text-muted">
-          Clear face, good light, different angles. JPEG, PNG or WebP.
+          Clear face, good light, different angles. JPEG, PNG, WebP or iPhone HEIC.
         </span>
         <input
           type="file"
-          accept={ACCEPT.join(',')}
+          accept={[...ACCEPT, '.heic', '.heif'].join(',')}
           multiple
           className="sr-only"
           disabled={disabled}
@@ -76,10 +78,17 @@ export function SelfieDropzone({
             return (
               <div
                 key={previews[i]}
-                className="relative aspect-square overflow-hidden border border-border"
+                className="relative flex aspect-square items-center justify-center overflow-hidden border border-border bg-surface text-xs text-muted"
               >
+                {/* HEIC can't be previewed outside Safari; the img hides itself and this label shows. */}
+                HEIC
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={previews[i]} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={previews[i]}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
                 {state === 'idle' && !disabled && (
                   <button
                     type="button"

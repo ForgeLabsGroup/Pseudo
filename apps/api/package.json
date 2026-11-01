@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "dev": "tsx watch --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local src/server.ts",
     "start": "tsx src/server.ts",
-    "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
+    "seed": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local src/scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "seed:archetypes": "tsx --env-file-if-exists=../../.env src/scripts/seed-archetypes.ts",
-    "research:smoke": "tsx --env-file-if-exists=../../.env src/scripts/research-smoke.ts"
+    "seed:archetypes": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local src/scripts/seed-archetypes.ts",
+    "research:smoke": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local src/scripts/research-smoke.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
@@ -23,10 +23,12 @@
     "@pseudo/shared": "workspace:*",
     "fastify": "^5.12.7",
     "fastify-plugin": "^5.0.1",
+    "heic-convert": "^2.1.0",
     "tsx": "^4.23.15",
     "zod": "^4.3.3"
   },
   "devDependencies": {
+    "@types/heic-convert": "^2.1.1",
     "@types/node": "^22.20.5",
     "typescript": "^5.9.3",
     "vitest": "^5.0.5"

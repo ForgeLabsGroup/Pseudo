@@ -28,14 +28,16 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
   const { prompt } = await buildImagePrompt(input.identity, input.category, input.scene);
 
   let references: ReferenceImage[] = [];
+  let referenceUrls: string[] = [];
   if (input.useReference) {
     const { data: refs } = await admin
       .from('media_assets')
-      .select('storage_path, mime_type')
+      .select('storage_path, mime_type, url')
       .eq('persona_id', input.personaId)
       .eq('source', 'reference_upload')
       .order('created_at', { ascending: false })
       .limit(maxReferenceImages());
+    referenceUrls = (refs ?? []).map((r) => r.url as string);
     references = await Promise.all(
       (refs ?? []).map(async (r) => ({
         data: await downloadMedia(r.storage_path),
@@ -52,7 +54,13 @@ export async function generatePersonaImage(ctx: RunCtx, input: ImageJobInput) {
   );
   const characterId = await readyCharacterId(input.personaId);
   const generate = () =>
-    generateImage({ prompt, references, characterId, aspectRatio: input.aspectRatio ?? '4:5' });
+    generateImage({
+      prompt,
+      references,
+      referenceUrls,
+      characterId,
+      aspectRatio: input.aspectRatio ?? '4:5',
+    });
   const img =
     aiConfig().image === 'higgsfield'
       ? await trackHiggsfield(ctx, { operation: 'image', personaId: input.personaId }, generate)
