@@ -18,6 +18,13 @@ describe('buildPlaybook (mock text provider)', () => {
     expect(pb.xPostPatterns.length).toBeGreaterThan(0);
   });
 
+  it('puts the archetype guardrails first in dontList', async () => {
+    const guardrails = ['Never state returns.', 'No trade signals.'];
+    const pb = await buildPlaybook({ ...base, guardrails, posts: [] });
+    expect(pb.dontList.slice(0, 2)).toEqual(guardrails);
+    expect(pb.dontList.length).toBeGreaterThan(2);
+  });
+
   it('never reports X patterns when no posts were collected', async () => {
     const pb = await buildPlaybook({ ...base, posts: [] });
     expect(pb.xPostPatterns).toEqual([]);

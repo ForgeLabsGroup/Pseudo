@@ -48,7 +48,7 @@ export async function buildImagePrompt(
 Describe plainly: the exact place, what the person is doing mid-action, what they are wearing (ordinary, slightly lived-in clothes), the real light (e.g. overcast sky, harsh midday sun, window light, car interior, shade) and one small mundane detail (phone in hand, creased shirt, a coffee cup, wet hair, a bag on the seat).
 Camera: a normal eye-level or slightly off-centre phone shot, not a posed studio portrait.
 Never use: cinematic, masterpiece, 8k, ultra-detailed, hyperrealistic, stunning, bokeh, HDR, volumetric, dramatic lighting, golden hour glow, shallow depth of field. Do not describe the face (the user's reference photo defines it). No logos, no readable brand names, no real people.\n${SAFETY_BLOCK}`,
-    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}` : ''}\n\nCategory: ${category}\nThe photo MUST clearly show: ${CATEGORY_HINTS[category]}.\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
+    prompt: `${personaContext(identity)}\n\n${playbook ? `Archetype visual style (from research): ${JSON.stringify(playbook.visualStyle)}\nNever show: ${playbook.dontList.join('; ')}` : ''}\n\nCategory: ${category}\nThe photo MUST clearly show: ${CATEGORY_HINTS[category]}.\n${scene ? `Scene: ${scene}` : "Pick a scene from the persona's recurring settings."}`,
     schema: ImagePromptOut,
   });
   return { ...res.data, prompt: cleanImagePrompt(res.data.prompt) };
