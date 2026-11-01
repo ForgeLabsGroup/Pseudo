@@ -3,11 +3,13 @@ import { LiveEvent } from '@pseudo/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { API_URL, accessToken } from '@/lib/api';
+import { emitLive } from '@/lib/pulse-bus';
 import { useUI } from '@/lib/store';
 
 /**
  * One SSE connection per session. Pushes events into the activity feed and invalidates
- * the matching TanStack Query caches so every page updates live.
+ * the matching TanStack Query caches so every page updates live. Every event also goes to the
+ * pulse bus (Core scene); `call.*` events stop there so they never flood the feed or refetch.
  */
 export function useLiveEvents(enabled: boolean) {
   const qc = useQueryClient();
@@ -27,6 +29,8 @@ export function useLiveEvents(enabled: boolean) {
         const parsed = LiveEvent.safeParse(JSON.parse(msg.data));
         if (!parsed.success) return;
         const e = parsed.data;
+        emitLive(e);
+        if (e.type === 'call.started' || e.type === 'call.finished') return;
         push(e);
         if (e.type.startsWith('run.')) qc.invalidateQueries({ queryKey: ['runs'] });
         if (e.type === 'persona.updated' || e.type === 'run.succeeded')

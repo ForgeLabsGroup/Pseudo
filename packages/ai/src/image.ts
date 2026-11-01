@@ -3,6 +3,7 @@ import OpenAI, { toFile } from 'openai';
 import { aiConfig } from './config';
 import { higgsfieldImage } from './higgsfield';
 import { mockImage } from './mock/image';
+import { traced } from './trace';
 
 export interface ReferenceImage {
   data: Buffer;
@@ -30,12 +31,14 @@ export interface GeneratedImage {
 /** How many of the user's selfies to send as references. More = better likeness on Pro-tier models. */
 export const maxReferenceImages = () => Number(process.env.MAX_REFERENCE_IMAGES ?? 4);
 
-export async function generateImage(args: GenerateImageArgs): Promise<GeneratedImage> {
+export function generateImage(args: GenerateImageArgs): Promise<GeneratedImage> {
   const provider = aiConfig().image;
-  if (provider === 'gemini') return geminiImage(args);
-  if (provider === 'openai') return openaiImage(args);
-  if (provider === 'higgsfield') return higgsfieldImage(args);
-  return mockImage(args);
+  return traced('image', provider, () => {
+    if (provider === 'gemini') return geminiImage(args);
+    if (provider === 'openai') return openaiImage(args);
+    if (provider === 'higgsfield') return higgsfieldImage(args);
+    return mockImage(args);
+  });
 }
 
 async function geminiImage(args: GenerateImageArgs): Promise<GeneratedImage> {

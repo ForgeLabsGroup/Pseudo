@@ -4,6 +4,7 @@ Flow (matches the whiteboard): Dash → backend orchestrator → Persona → Con
 
 Controlled workflows, typed I/O (Zod), no free-form agent chatter. All prompts include `personaContext()` + `SAFETY_BLOCK`.
 Every run is an `agent_runs` row with step events (`progress(step, message)`) streamed over SSE.
+Every provider call (LLM, image, voice, video, scraper, watcher, publisher) is wrapped in `traced()` (`packages/ai/src/trace.ts`) and streamed as `call.started` / `call.finished` (who, module, ms, ok) for the home page Core graph; the run context comes from `AsyncLocalStorage` in `apps/api/src/lib/trace.ts`.
 
 | Agent | Where | Input → Output | Failure |
 |---|---|---|---|

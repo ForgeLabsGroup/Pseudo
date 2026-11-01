@@ -13,6 +13,7 @@ import publishingRoutes from './routes/publishing';
 import usageRoutes from './routes/usage';
 import { startPublishingWorker } from './jobs/publisher';
 import { startRunReaper } from './jobs/reaper';
+import { initCallTracing } from './lib/trace';
 
 export async function buildServer() {
   const app = Fastify({
@@ -71,6 +72,7 @@ if (process.env.NODE_ENV !== 'test') {
     process.exit(1);
   }
   const app = await buildServer();
+  initCallTracing();
   startPublishingWorker();
   startRunReaper();
   await app.listen({ port: env.port, host: env.host });

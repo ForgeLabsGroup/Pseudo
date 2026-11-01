@@ -44,3 +44,10 @@ export function playbookContext(p: ArchetypePlaybook | null | undefined): string
     .filter(Boolean)
     .join('\n');
 }
+
+/** Words that make image/video models produce a glossy "AI ad" look. Stripped from every media prompt. */
+const SLOP_WORDS =
+  /\b(cinematic|masterpiece|hyper-?realistic|ultra-?realistic|photo-?realistic|ultra[- ]detailed|highly detailed|8k|4k|hdr|bokeh|volumetric|dramatic lighting|studio lighting|epic|stunning|breathtaking|award[- ]winning|trending on \w+|unreal engine|octane|render(ed)?|shallow depth of field|golden[- ]hour glow|warm tones|35mm)\b[,.]?\s*/gi;
+
+export const stripSlopWords = (prompt: string) =>
+  prompt.replace(SLOP_WORDS, '').replace(/\s{2,}/g, ' ').replace(/[\s,]+$/, '').trim();

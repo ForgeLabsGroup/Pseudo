@@ -118,6 +118,8 @@ export async function mockGenerate(task: string, prompt: string): Promise<unknow
       };
     case 'image_prompt': {
       // Honour the requested category/scene (the real model does), so mock mode isn't always a balcony.
+      const broll = /^B-roll shot: (.+)$/m.exec(prompt)?.[1];
+      if (broll) return { prompt: `${broll}, on a desk by a window, morning light`, altText: broll };
       const must = /MUST clearly show: ([^\n]+?)\.?(?:\n|$)/.exec(prompt)?.[1];
       const scene = /^Scene: (.+)$/m.exec(prompt)?.[1];
       const subject = must ?? 'a confident man in his late 20s in a linen shirt on a Brickell balcony';
@@ -226,37 +228,58 @@ export async function mockGenerate(task: string, prompt: string): Promise<unknow
       if (prompt.includes('CONTENT_TYPE: short_video'))
         return {
           type: 'short_video',
-          title: '5:30am in Miami — a trader’s morning',
-          hook: 'Everyone wants the Miami life. Nobody wants the 5:30 alarm.',
+          title: 'The 10-minute rule that stopped my bad trades',
+          idea: 'Wait 10 minutes after any urge to trade and write one sentence on why; most urges disappear.',
+          hook: 'Trades I took out of boredom hurt me more than any bad setup.',
           scenes: [
             {
               durationSec: 3,
-              visual: 'phone alarm at 5:30, dark bedroom with bay view',
-              voiceover: 'Everyone wants the Miami life. Nobody wants the 5:30 alarm.',
-              onScreenText: '5:30 AM',
+              beat: 'hook',
+              shot: 'close-up face, looking at camera',
+              visual: 'at a desk in the morning, looking straight at the camera, three monitors blurred behind',
+              voiceover: 'Boredom trades cost me more than any bad setup.',
+              onScreenText: 'Boredom trades',
             },
             {
               durationSec: 4,
-              visual: 'running along Biscayne Bay at sunrise',
-              voiceover: 'First win of the day: a run before the city wakes up.',
-              onScreenText: 'Win #1',
+              beat: 'setup',
+              subject: 'broll',
+              overlay: 'chart',
+              visual: 'three monitors with candlestick charts on a desk, morning light, a half-finished coffee',
+              voiceover: 'The urge shows up around 11. Nothing is happening, so I want to make something happen.',
+              onScreenText: '11:04 AM',
             },
             {
               durationSec: 4,
-              visual: 'three-monitor trading desk with charts',
-              voiceover: 'Then the plan. Levels, risk, and the trades I will not take.',
-              onScreenText: 'The plan',
+              beat: 'value',
+              shot: 'low-angle mid shot, writing on a sticky note',
+              overlay: 'list',
+              overlayItems: ['Wait 10 min', 'Write 1 sentence', 'Still good? Take it'],
+              visual: 'writing one sentence on a sticky note and pressing it to the monitor',
+              voiceover: 'So I made a rule. Ten minutes. And one sentence on why I want in.',
+              onScreenText: 'Rule: 10 min + 1 sentence',
             },
             {
               durationSec: 4,
-              visual: 'espresso on a high-rise balcony overlooking Miami',
-              voiceover: 'Discipline is the flex. Everything else is just scenery.',
-              onScreenText: 'Discipline is the flex.',
+              beat: 'proof',
+              shot: 'side profile, standing at the window',
+              visual: 'standing at the window with a coffee while a timer counts down on the phone',
+              voiceover: 'Most of the time the sentence is just: I am bored. Then I close the chart.',
+              onScreenText: 'Most urges: gone',
+            },
+            {
+              durationSec: 4,
+              beat: 'payoff',
+              shot: 'wide environmental, walking away from the desk',
+              visual: 'walking away from the desk toward the balcony door, screens still on behind',
+              voiceover: 'If the reason is still good after ten minutes, I take it. Otherwise, I got ten minutes back.',
+              onScreenText: 'Try it once today',
             },
           ],
-          caption: 'The morning is the edge. 🌴 #AIgenerated',
-          hashtags: ['#miami', '#traderlife', '#morningroutine'],
+          caption: 'The rule that cut my worst habit. Saving this for the next time I get restless. #AIgenerated',
+          hashtags: ['#traderlife', '#tradingpsychology', '#riskmanagement', '#miami'],
           voiceoverAssetId: null,
+          musicAssetId: null,
           videoAssetId: null,
         };
       const ig = IG[n % IG.length]!;

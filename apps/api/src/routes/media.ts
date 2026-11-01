@@ -1,3 +1,4 @@
+import { shotAngle } from '@pseudo/agents';
 import { toMediaAsset } from '@pseudo/database';
 import {
   GenerateImageRequest,
@@ -108,7 +109,11 @@ export default async function mediaRoutes(app: FastifyInstance) {
             personaId: body.personaId,
             identity,
             category: body.category,
-            scene: body.prompt,
+            scene:
+              [body.prompt, body.count > 1 ? `Camera: ${shotAngle(i)}` : '']
+                .filter(Boolean)
+                .join('. ') || undefined,
+            variant: i,
             useReference: body.useReference,
             aspectRatio: body.category === 'profile' ? '1:1' : '4:5',
             contentId: body.contentId,

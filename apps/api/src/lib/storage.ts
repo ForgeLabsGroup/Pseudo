@@ -7,6 +7,7 @@ const EXT: Record<string, string> = {
   'image/webp': 'webp',
   'image/svg+xml': 'svg',
   'audio/mpeg': 'mp3',
+  'audio/wav': 'wav',
   'video/mp4': 'mp4',
 };
 

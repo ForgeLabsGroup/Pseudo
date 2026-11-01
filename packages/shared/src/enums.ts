@@ -79,6 +79,19 @@ export const AGENT_NAMES = [
 export const AgentName = z.enum(AGENT_NAMES);
 export type AgentName = z.infer<typeof AgentName>;
 
+/** Which external module a traced provider call hit (drives the `call.*` live events). */
+export const CALL_MODULES = [
+  'llm',
+  'image',
+  'voice',
+  'video',
+  'social',
+  'watcher',
+  'publisher',
+] as const;
+export const CallModule = z.enum(CALL_MODULES);
+export type CallModule = z.infer<typeof CallModule>;
+
 export const RUN_STATUSES = ['queued', 'running', 'succeeded', 'failed'] as const;
 export const RunStatus = z.enum(RUN_STATUSES);
 export type RunStatus = z.infer<typeof RunStatus>;
