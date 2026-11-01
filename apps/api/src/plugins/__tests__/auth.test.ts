@@ -1,7 +1,7 @@
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import authPlugin from '../auth';
+import authPlugin, { WRITE_LIMIT_PER_MINUTE } from '../auth';
 
 const { getUser, getUserClient, handler } = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -128,7 +128,7 @@ describe('API authentication and request limits', () => {
   it('limits writes across routes per user, preserves reads, and resets after a minute', async () => {
     const now = vi.spyOn(Date, 'now').mockReturnValue(1_000);
     const headers = { authorization: 'Bearer verified-token' };
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < WRITE_LIMIT_PER_MINUTE; i++) {
       expect(
         (await app.inject({ method: 'POST', url: '/api/content/generate', headers })).statusCode,
       ).toBe(200);
@@ -140,7 +140,7 @@ describe('API authentication and request limits', () => {
     });
     expect(limited.statusCode).toBe(429);
     expect(limited.headers['retry-after']).toBe('60');
-    expect(handler).toHaveBeenCalledTimes(10);
+    expect(handler).toHaveBeenCalledTimes(WRITE_LIMIT_PER_MINUTE);
     expect((await app.inject({ url: '/api/read', headers })).statusCode).toBe(200);
     getUser.mockResolvedValueOnce({ data: { user: { id: 'another-user' } }, error: null });
     expect(

@@ -11,6 +11,9 @@ declare module 'fastify' {
   }
 }
 
+/** Persona creation alone is 1 create + up to 20 parallel selfie uploads, so leave headroom. */
+export const WRITE_LIMIT_PER_MINUTE = 60;
+
 /** Require a session verified by this Supabase project before any route runs. */
 export default fp(async (app: FastifyInstance) => {
   // Per-process protection for the single API instance, not a monetary spending cap.
@@ -47,7 +50,7 @@ export default fp(async (app: FastifyInstance) => {
         window = { count: 0, resetAt: now + 60_000 };
         writes.set(data.user.id, window);
       }
-      if (window.count >= 10) {
+      if (window.count >= WRITE_LIMIT_PER_MINUTE) {
         reply.header('Retry-After', Math.ceil((window.resetAt - now) / 1000));
         throw new HttpError(429, 'Too many changes. Please wait a minute and try again.');
       }
