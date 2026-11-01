@@ -2,6 +2,7 @@
 import { durationInFrames, ShortVideo, VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '@pseudo/media';
 import type { ContentItem } from '@pseudo/shared';
 import { Player } from '@remotion/player';
+import { AiBadge } from '@/components/ui/badge';
 
 /** In-browser preview of a short_video content item (scene images + voiceover + captions). Owner: Person C. */
 export function VideoPreview({ item, handle }: { item: ContentItem; handle: string }) {
@@ -22,15 +23,18 @@ export function VideoPreview({ item, handle }: { item: ContentItem; handle: stri
     })),
   };
   return (
-    <Player
-      component={ShortVideo}
-      inputProps={props}
-      durationInFrames={durationInFrames(props)}
-      fps={VIDEO_FPS}
-      compositionWidth={VIDEO_WIDTH}
-      compositionHeight={VIDEO_HEIGHT}
-      style={{ width: '100%', aspectRatio: '9 / 16', borderRadius: 16, overflow: 'hidden' }}
-      controls
-    />
+    <div className="relative">
+      <Player
+        component={ShortVideo}
+        inputProps={props}
+        durationInFrames={durationInFrames(props)}
+        fps={VIDEO_FPS}
+        compositionWidth={VIDEO_WIDTH}
+        compositionHeight={VIDEO_HEIGHT}
+        style={{ width: '100%', aspectRatio: '9 / 16', borderRadius: 16, overflow: 'hidden' }}
+        controls
+      />
+      <AiBadge className="absolute right-2 top-2" />
+    </div>
   );
 }
