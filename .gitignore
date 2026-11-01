@@ -9,5 +9,6 @@ dist
 out
 coverage
 .vercel
-supabase/.temp
 next-env.d.ts
+
+.cache

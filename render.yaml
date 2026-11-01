@@ -4,7 +4,7 @@ services:
     name: pseudo-api
     runtime: node
     plan: starter            # free plan sleeps -> first demo request is slow; use starter for demo day
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @pseudo/research setup:ytdlp
     startCommand: pnpm --filter @pseudo/api start
     healthCheckPath: /health
     envVars:
@@ -45,8 +45,20 @@ services:
       - key: RESEARCH_SOURCE
         value: mock
       - key: RESEARCH_WATCHER
-        value: mock
+        value: mock              # mock | vision | gemini
+      - key: RESEARCH_CONCURRENCY
+        value: "2"
       - key: APIFY_TOKEN
+        sync: false
+      - key: FEATHERLESS_API_KEY
+        sync: false
+      - key: VIDEO_MODEL_NAME
+        value: google/gemma-3-27b-it
+      - key: VIDEO_FRAMES
+        value: "8"
+      - key: TRANSCRIBE_PROVIDER
+        value: none
+      - key: TRANSCRIBE_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
         sync: false

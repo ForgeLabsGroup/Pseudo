@@ -12,17 +12,22 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:link": "supabase link",
+    "db:push": "supabase db push",
+    "db:status": "supabase migration list"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
     "prettier": "^3.9.10",
+    "supabase": "^2.122.0",
     "turbo": "^2.11.10",
     "typescript": "^5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
+      "ffmpeg-static",
       "sharp",
       "@remotion/compositor-linux-x64-gnu"
     ]
