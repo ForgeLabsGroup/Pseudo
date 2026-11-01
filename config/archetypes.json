@@ -13,27 +13,27 @@
         {
           "label": "trader-1",
           "handles": {
-            "tiktok": "timothysykes",
-            "instagram": "timothysykes",
-            "youtube": "TimothySykes",
-            "x": "timothysykes"
+            "tiktok": "tjr",
+            "instagram": "tjr",
+            "youtube": "TJRTrades",
+            "x": "_TJRTrades"
           }
         },
         {
           "label": "trader-2",
           "handles": {
-            "tiktok": "humbledtrader",
-            "instagram": "humbledtrader",
-            "youtube": "HumbledTrader",
-            "x": "humbledtrader"
+            "tiktok": "brezscales",
+            "instagram": "brezscales",
+            "youtube": "brezscales",
+            "x": "brezscales"
           }
         },
         {
           "label": "trader-3",
           "handles": {
-            "tiktok": "raynerteo",
-            "instagram": "raynerteo",
-            "youtube": "RaynerTeo",
+            "tiktok": "craigtradez",
+            "instagram": "craig_percoco",
+            "youtube": "craig_percoco",
             "x": ""
           }
         }
@@ -51,28 +51,28 @@
         {
           "label": "ecom-1",
           "handles": {
-            "tiktok": "hormozi",
-            "instagram": "hormozi",
-            "youtube": "AlexHormozi",
-            "x": "AlexHormozi"
+            "tiktok": "tailopez",
+            "instagram": "tailopez",
+            "youtube": "",
+            "x": ""
           }
         },
         {
           "label": "ecom-2",
           "handles": {
-            "tiktok": "garyvee",
-            "instagram": "garyvee",
-            "youtube": "garyvee",
-            "x": "garyvee"
+            "tiktok": "ac_hampton",
+            "instagram": "ac_hampton",
+            "youtube": "AcHampton",
+            "x": ""
           }
         },
         {
           "label": "ecom-3",
           "handles": {
-            "tiktok": "codiesanchez",
-            "instagram": "codiesanchez",
-            "youtube": "",
-            "x": "Codie_Sanchez"
+            "tiktok": "jordanwelch",
+            "instagram": "jordanwelch",
+            "youtube": "jordanwelch",
+            "x": ""
           }
         }
       ]
@@ -89,24 +89,29 @@
         {
           "label": "fitness-1",
           "handles": {
-            "tiktok": "jeffnippard",
-            "instagram": "jeffnippard",
-            "youtube": "JeffNippard",
-            "x": "JeffNippard"
+            "tiktok": "hussein.fht",
+            "instagram": "hussein.fht",
+            "youtube": "",
+            "x": ""
           }
         },
         {
           "label": "fitness-2",
           "handles": {
-            "tiktok": "athleanx",
-            "instagram": "athleanx",
-            "youtube": "athleanx",
+            "tiktok": "gregdoucette_thetok",
+            "instagram": "gregdoucetteifbbpro",
+            "youtube": "GregDoucette",
             "x": ""
           }
         },
         {
           "label": "fitness-3",
-          "handles": { "tiktok": "cbum", "instagram": "cbum", "youtube": "", "x": "" }
+          "handles": {
+            "tiktok": "liverking",
+            "instagram": "liverking",
+            "youtube": "theliverking",
+            "x": ""
+          }
         }
       ]
     }
