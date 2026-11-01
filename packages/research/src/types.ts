@@ -32,10 +32,43 @@ export interface SocialSource {
   getRecentPosts(handles: InfluencerHandles, limit: number): Promise<SourcePost[]>;
 }
 
+/** A video file on local disk (a temp copy; the durable copy lives in the VideoStore). */
+export interface LocalVideo {
+  path: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+/**
+ * Durable storage for downloaded source videos (Supabase Storage in the API). Keeps this package
+ * free of Supabase. Keys look like `{archetype}/{influencer}/{platform}-{hash}.mp4`.
+ */
+export interface VideoStore {
+  get(key: string): Promise<{ data: Buffer; mimeType: string } | null>;
+  put(key: string, data: Buffer, mimeType: string): Promise<void>;
+}
+
+/** What a watcher learned besides the analysis itself (persisted for re-analysis/debugging). */
+export interface WatchMeta {
+  transcript?: string;
+  durationSec?: number;
+  framesUsed?: number;
+}
+
 /** Watches one video (picture + audio) and returns a structured breakdown. */
 export interface VideoWatcher {
   name: string;
-  watch(video: SourceVideo, context: { archetypeName: string }): Promise<VideoAnalysis>;
+  /** True if the watcher needs the video file on disk (`context.media`); false = fetches it itself. */
+  needsMedia?: boolean;
+  watch(
+    video: SourceVideo,
+    context: {
+      archetypeName: string;
+      /** Local copy of the video, set by the orchestrator when `needsMedia` is true. */
+      media?: LocalVideo;
+      onMeta?: (meta: WatchMeta) => void;
+    },
+  ): Promise<VideoAnalysis>;
 }
 
 export type ResearchProgress = (step: string, message: string) => void | Promise<void>;

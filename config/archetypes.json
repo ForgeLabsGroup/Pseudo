@@ -1,5 +1,5 @@
 {
-  "_readme": "Archetypes + reference influencers for Research. Fill handles (no @) before deploy, then run: pnpm --filter @pseudo/api seed:archetypes. Labels are internal only and never appear in generated content. Add platforms an influencer is on: tiktok, instagram, youtube, x.",
+  "_readme": "Archetypes + reference influencers for Research. Handles have no @. Labels are anonymous, internal only, and never appear in generated content; real handles live ONLY in this file and the DB, never in prompts, playbooks or UI. Blank = platform skipped. Handles were picked from public knowledge and must be confirmed with: pnpm --filter @pseudo/api research:smoke --archetype <slug> --influencer <label>. Then run: pnpm --filter @pseudo/api seed:archetypes",
   "archetypes": [
     {
       "slug": "trader",
@@ -10,9 +10,33 @@
         "Never give financial advice or trade signals; frame as mindset/routine/lifestyle."
       ],
       "influencers": [
-        { "label": "trader-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "trader-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "trader-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+        {
+          "label": "trader-1",
+          "handles": {
+            "tiktok": "timothysykes",
+            "instagram": "timothysykes",
+            "youtube": "TimothySykes",
+            "x": "timothysykes"
+          }
+        },
+        {
+          "label": "trader-2",
+          "handles": {
+            "tiktok": "humbledtrader",
+            "instagram": "humbledtrader",
+            "youtube": "HumbledTrader",
+            "x": "humbledtrader"
+          }
+        },
+        {
+          "label": "trader-3",
+          "handles": {
+            "tiktok": "raynerteo",
+            "instagram": "raynerteo",
+            "youtube": "RaynerTeo",
+            "x": ""
+          }
+        }
       ]
     },
     {
@@ -24,9 +48,33 @@
         "No 'get rich' promises, courses or income opportunities."
       ],
       "influencers": [
-        { "label": "ecom-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "ecom-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "ecom-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+        {
+          "label": "ecom-1",
+          "handles": {
+            "tiktok": "hormozi",
+            "instagram": "hormozi",
+            "youtube": "AlexHormozi",
+            "x": "AlexHormozi"
+          }
+        },
+        {
+          "label": "ecom-2",
+          "handles": {
+            "tiktok": "garyvee",
+            "instagram": "garyvee",
+            "youtube": "garyvee",
+            "x": "garyvee"
+          }
+        },
+        {
+          "label": "ecom-3",
+          "handles": {
+            "tiktok": "codiesanchez",
+            "instagram": "codiesanchez",
+            "youtube": "",
+            "x": "Codie_Sanchez"
+          }
+        }
       ]
     },
     {
@@ -38,9 +86,28 @@
         "No fake before/after transformations or client results/testimonials."
       ],
       "influencers": [
-        { "label": "fitness-1", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "fitness-2", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } },
-        { "label": "fitness-3", "handles": { "tiktok": "", "instagram": "", "youtube": "", "x": "" } }
+        {
+          "label": "fitness-1",
+          "handles": {
+            "tiktok": "jeffnippard",
+            "instagram": "jeffnippard",
+            "youtube": "JeffNippard",
+            "x": "JeffNippard"
+          }
+        },
+        {
+          "label": "fitness-2",
+          "handles": {
+            "tiktok": "athleanx",
+            "instagram": "athleanx",
+            "youtube": "athleanx",
+            "x": ""
+          }
+        },
+        {
+          "label": "fitness-3",
+          "handles": { "tiktok": "cbum", "instagram": "cbum", "youtube": "", "x": "" }
+        }
       ]
     }
   ]
