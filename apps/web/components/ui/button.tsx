@@ -3,18 +3,17 @@ import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 const button = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+  'inline-flex items-center justify-center gap-2 border font-mono text-xs font-medium uppercase tracking-[0.06em] transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link [&_svg]:h-3.5 [&_svg]:w-3.5',
   {
     variants: {
       variant: {
-        primary:
-          'bg-gradient-to-r from-accent to-accent-2 text-white shadow-lg shadow-accent/20 hover:brightness-110',
-        secondary: 'bg-surface-2 text-fg border border-border hover:bg-border/60',
-        ghost: 'text-muted hover:text-fg hover:bg-surface-2',
-        danger: 'bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25',
-        success: 'bg-success/15 text-success border border-success/30 hover:bg-success/25',
+        primary: 'border-fg bg-fg text-bg hover:bg-white',
+        secondary: 'border-border-strong text-fg hover:border-subtle hover:bg-surface-2',
+        ghost: 'border-transparent text-muted hover:bg-surface-2 hover:text-fg',
+        danger: 'border-border-strong text-danger hover:border-danger/60 hover:bg-danger/10',
+        success: 'border-border-strong text-success hover:border-success/60 hover:bg-success/10',
       },
-      size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6 text-base', icon: 'h-9 w-9' },
+      size: { sm: 'h-8 px-3 text-[11px]', md: 'h-9 px-4', lg: 'h-11 px-6', icon: 'h-9 w-9' },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
   },

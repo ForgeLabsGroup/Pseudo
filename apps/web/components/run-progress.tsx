@@ -30,7 +30,7 @@ export function RunProgress({ runId, className }: { runId: string; className?: s
           return (
             <li key={e.id} className="flex items-start gap-2">
               {active ? (
-                <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-accent" />
+                <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-link" />
               ) : (
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               )}
@@ -40,7 +40,7 @@ export function RunProgress({ runId, className }: { runId: string; className?: s
         })}
         {!isDone(run) && events.length === 0 && (
           <li className="flex items-center gap-2 text-muted">
-            <Loader2 className="h-4 w-4 animate-spin text-accent" /> Starting agents…
+            <Loader2 className="h-4 w-4 animate-spin text-link" /> Starting agents…
           </li>
         )}
       </ul>
@@ -87,9 +87,9 @@ export function StageStepper({ runId, stages }: { runId: string; stages: Stage[]
             <li key={s.label} className="flex flex-1 items-center gap-2">
               <div
                 className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs',
+                  'flex h-8 w-8 shrink-0 items-center justify-center border font-mono text-xs',
                   state === 'done' && 'border-success/50 bg-success/15 text-success',
-                  state === 'active' && 'border-accent bg-accent/15 text-accent',
+                  state === 'active' && 'border-link/60 bg-link/10 text-link',
                   state === 'failed' && 'border-danger/50 bg-danger/15 text-danger',
                   (state === 'pending' || state === 'skipped') && 'border-border text-muted',
                 )}

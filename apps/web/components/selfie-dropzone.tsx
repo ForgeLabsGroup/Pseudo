@@ -45,12 +45,12 @@ export function SelfieDropzone({
           if (!disabled) add(e.dataTransfer.files);
         }}
         className={cn(
-          'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-6 py-10 text-center transition',
-          over && 'border-accent bg-accent/5',
+          'flex cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border-strong px-6 py-10 text-center transition',
+          over && 'border-link bg-link/5',
           (disabled || files.length >= SELFIE_MAX) && 'pointer-events-none opacity-50',
         )}
       >
-        <ImagePlus className="h-6 w-6 text-accent" />
+        <ImagePlus className="h-6 w-6 text-muted" />
         <span className="text-sm">
           Drop {SELFIE_MIN}–{SELFIE_MAX} selfies or click to choose
         </span>
@@ -76,7 +76,7 @@ export function SelfieDropzone({
             return (
               <div
                 key={previews[i]}
-                className="relative aspect-square overflow-hidden rounded-xl border border-border"
+                className="relative aspect-square overflow-hidden border border-border"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previews[i]} alt="" className="h-full w-full object-cover" />
@@ -85,7 +85,7 @@ export function SelfieDropzone({
                     type="button"
                     aria-label="Remove"
                     onClick={() => onChange(files.filter((_, j) => j !== i))}
-                    className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white"
+                    className="absolute right-1 top-1 bg-black/75 p-1 text-white"
                   >
                     <X className="h-3 w-3" />
                   </button>

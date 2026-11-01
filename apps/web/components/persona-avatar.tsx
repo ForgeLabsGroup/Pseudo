@@ -12,7 +12,7 @@ export function PersonaAvatar({
   return (
     <div
       className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-accent to-accent-2 text-sm font-semibold text-white',
+        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden bg-surface-2 font-mono text-sm text-muted',
         className,
       )}
     >

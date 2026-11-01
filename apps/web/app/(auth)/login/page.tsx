@@ -27,16 +27,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="bg-glow flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        <div className="mb-10 text-center">
-          <div className="text-4xl font-bold tracking-[0.3em] text-gradient">PSEUDO</div>
-          <p className="mt-3 text-muted">Your alter ego.</p>
+        <div className="mb-8 text-center">
+          <div className="font-mono text-lg font-medium tracking-[0.24em]">PSEUDO</div>
+          <h1 className="mt-6 text-3xl font-normal tracking-[-0.03em]">Your alter ego.</h1>
         </div>
-        <form
-          onSubmit={submit}
-          className="space-y-4 rounded-2xl border border-border bg-surface/80 p-6 backdrop-blur"
-        >
+        <form onSubmit={submit} className="space-y-4 border border-border bg-surface p-6">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input

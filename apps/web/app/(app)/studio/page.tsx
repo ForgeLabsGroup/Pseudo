@@ -182,7 +182,7 @@ export default function StudioPage() {
                     key={t}
                     type="button"
                     onClick={() => setTone(t)}
-                    className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted hover:text-fg"
+                    className="border border-border-strong px-2 py-0.5 text-xs text-muted transition-colors hover:border-subtle hover:text-fg"
                   >
                     {t}
                   </button>
@@ -237,7 +237,7 @@ export default function StudioPage() {
               </Card>
               <div className="grid gap-4 xl:grid-cols-2">
                 {items.length === 0 &&
-                  batch.contentIds.map((id) => <Skeleton key={id} className="h-80 rounded-2xl" />)}
+                  batch.contentIds.map((id) => <Skeleton key={id} className="h-80" />)}
                 {items.map((item) => (
                   <PostCard key={item.id} item={item} persona={batchPersona} />
                 ))}
@@ -245,7 +245,7 @@ export default function StudioPage() {
               {items.some((i) => i.status === 'awaiting_approval') && (
                 <Link
                   href={`/content?personaId=${batch.personaId}&status=awaiting_approval`}
-                  className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
+                  className="inline-flex items-center gap-1 text-sm text-link hover:underline"
                 >
                   Review and approve in Content Studio <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -277,8 +277,10 @@ function Pill({
       type="button"
       onClick={onClick}
       className={cn(
-        'h-10 rounded-lg border text-sm transition',
-        active ? 'border-accent bg-accent/10 text-fg' : 'border-border text-muted hover:text-fg',
+        'h-10 border text-sm transition-colors',
+        active
+          ? 'border-fg bg-surface-2 text-fg'
+          : 'border-border-strong text-muted hover:border-subtle hover:text-fg',
       )}
     >
       {children}

@@ -59,7 +59,7 @@ function PostBody({ item, who }: { item: ContentItem; who: Who }) {
     case 'instagram_post': {
       const image = item.media.find((m) => m.kind === 'image');
       return (
-        <div className="overflow-hidden rounded-xl border border-border bg-black/30">
+        <div className="overflow-hidden border border-border bg-black/30">
           <div className="flex items-center gap-2 px-3 py-2.5">
             <PersonaAvatar url={who.avatarUrl} name={who.name} className="h-8 w-8" />
             <span className="text-sm font-semibold">{who.handle}</span>
@@ -73,7 +73,7 @@ function PostBody({ item, who }: { item: ContentItem; who: Who }) {
               </>
             ) : isRecent(item.updatedAt) ? (
               <div className="flex h-full items-center justify-center p-6 text-center">
-                <Skeleton className="absolute inset-0 rounded-none" />
+                <Skeleton className="absolute inset-0" />
                 <span className="relative text-xs text-muted">Visual Agent is shooting this…</span>
               </div>
             ) : (
@@ -119,7 +119,7 @@ function PostBody({ item, who }: { item: ContentItem; who: Who }) {
       const total = body.scenes.reduce((s, x) => s + x.durationSec, 0);
       return (
         <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative mx-auto aspect-[9/16] w-40 shrink-0 overflow-hidden rounded-xl border border-border bg-gradient-to-b from-surface-2 to-black">
+          <div className="relative mx-auto aspect-[9/16] w-40 shrink-0 overflow-hidden border border-border bg-surface-2">
             {cover && (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -145,8 +145,8 @@ function PostBody({ item, who }: { item: ContentItem; who: Who }) {
             <div className="font-semibold">{body.title}</div>
             <ol className="mt-2 space-y-2">
               {body.scenes.map((s, i) => (
-                <li key={i} className="rounded-lg bg-surface-2 p-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted">
+                <li key={i} className="border border-border bg-surface p-2">
+                  <div className="mono-label text-subtle">
                     Scene {i + 1} · {s.durationSec}s
                   </div>
                   <div className="font-medium">{s.onScreenText}</div>
@@ -215,7 +215,7 @@ function Caption({ children }: { children: ReactNode }) {
 function Hashtags({ tags }: { tags: string[] }) {
   if (!tags.length) return null;
   return (
-    <p className="mt-1 text-sm text-accent-2">
+    <p className="mt-1 text-sm text-link">
       {tags.map((t) => (t.startsWith('#') ? t : `#${t}`)).join(' ')}
     </p>
   );
@@ -228,7 +228,7 @@ function GeneratingSkeleton({ tall }: { tall: boolean }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-8 w-8" />
         <Skeleton className="h-3 w-28" />
       </div>
       {tall && <Skeleton className="aspect-square w-full" />}
