@@ -15,3 +15,6 @@ pnpm dev
 ```
 
 Everything works in **mock mode** with no AI or social API keys.
+
+
+<img width="588" height="326" alt="image" src="https://github.com/user-attachments/assets/e50cc2f5-0734-4b55-8b44-1edd1a739722" />
